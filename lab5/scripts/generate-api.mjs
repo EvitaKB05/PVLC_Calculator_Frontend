@@ -1,3 +1,4 @@
+// scripts/generate-api.mjs
 import { resolve } from 'path'
 import { generateApi } from 'swagger-typescript-api'
 import { fileURLToPath } from 'url'
@@ -9,20 +10,22 @@ const __dirname = dirname(__filename)
 generateApi({
 	name: 'Api.ts',
 	output: resolve(__dirname, '../src/api'),
-	url: 'http://localhost:8080/swagger/doc.json', // ИЗМЕНЕНО: правильный URL
+	url: 'http://localhost:8080/swagger/doc.json',
 	httpClientType: 'axios',
-	generateResponses: true,
-	generateRouteTypes: true,
 	generateClient: true,
+	generateRouteTypes: true,
+	generateResponses: true,
+	singleHttpClient: true,
+	unwrapResponseData: true,
+	defaultResponseAsSuccess: false,
+	modular: false,
+	cleanOutput: true,
+	enumNamesAsValues: false,
+	moduleNameFirstTag: false,
+	generateUnionEnums: false,
 	extractRequestParams: true,
 	extractRequestBody: true,
-	extractResponseBody: true,
-	extractResponseError: true,
+	extractEnums: true,
+	sortTypes: true,
+	sortRoutes: true,
 })
-	.then(() => {
-		console.log('API успешно сгенерирован')
-	})
-	.catch(error => {
-		console.error('Ошибка генерации API:', error)
-		process.exit(1)
-	})

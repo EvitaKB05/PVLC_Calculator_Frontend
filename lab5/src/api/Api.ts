@@ -21,10 +21,6 @@ export interface ApiLoginResponse {
   user?: DsMedUserResponse;
 }
 
-export interface ApiLogoutRequest {
-  token: string;
-}
-
 export interface DsCartIconResponse {
   med_card_id?: number;
   med_item_count?: number;
@@ -43,6 +39,16 @@ export interface DsCreatePvlcMedFormulaRequest {
   max_age: number;
   min_age: number;
   title: string;
+}
+
+export interface DsDeleteMedMmPvlcCalculationRequest {
+  card_id: number;
+  pvlc_med_formula_id: number;
+}
+
+export interface DsLoginMedUserRequest {
+  login: string;
+  password: string;
 }
 
 export interface DsMedMmPvlcCalculationResponse {
@@ -92,6 +98,20 @@ export interface DsPvlcMedFormulaResponse {
   title?: string;
 }
 
+export interface DsUpdateMedMmPvlcCalculationAPIRequest {
+  card_id: number;
+  data: DsUpdateMedMmPvlcCalculationRequest;
+  pvlc_med_formula_id: number;
+}
+
+export interface DsUpdateMedMmPvlcCalculationRequest {
+  input_height: number;
+}
+
+export interface DsUpdateMedUserRequest {
+  password?: string;
+}
+
 export interface DsUpdatePvlcMedCardRequest {
   doctor_name?: string;
   patient_name?: string;
@@ -108,142 +128,53 @@ export interface DsUpdatePvlcMedFormulaRequest {
   title?: string;
 }
 
-export type AuthLoginCreateData = ApiLoginResponse;
-
-export type AuthLoginCreateError = Record<string, string>;
-
-export type AuthLogoutCreateData = Record<string, string>;
-
-export type AuthLogoutCreateError = Record<string, string>;
-
-export type AuthProfileListData = DsMedUserResponse;
-
-export type AuthProfileListError = Record<string, string>;
-
-export type MedUsersRegisterCreateData = Record<string, any>;
-
-export type MedUsersRegisterCreateError = Record<string, string>;
-
-export type MedCardIconListData = DsCartIconResponse;
-
-export type MedCardIconListError = Record<string, string>;
-
-export interface PvlcMedCardsListParams {
-  /** Фильтр по статусу */
-  status?: string;
-  /** Фильтр по дате от */
-  date_from?: string;
-  /** Фильтр по дате до */
-  date_to?: string;
-}
-
-export type PvlcMedCardsListData = DsPvlcMedCardResponse[];
-
-export type PvlcMedCardsListError = Record<string, string>;
-
-export interface PvlcMedCardsDetailParams {
+export interface PvlcMedCardsCompleteUpdateParams {
   /** ID заявки */
   id: number;
 }
-
-export type PvlcMedCardsDetailData = DsPvlcMedCardResponse;
-
-export type PvlcMedCardsDetailError = Record<string, string>;
-
-export interface PvlcMedCardsUpdateParams {
-  /** ID заявки */
-  id: number;
-}
-
-export type PvlcMedCardsUpdateData = Record<string, string>;
-
-export type PvlcMedCardsUpdateError = Record<string, string>;
 
 export interface PvlcMedCardsDeleteParams {
   /** ID заявки */
   id: number;
 }
 
-export type PvlcMedCardsDeleteData = Record<string, string>;
-
-export type PvlcMedCardsDeleteError = Record<string, string>;
-
-export interface PvlcMedCardsCompleteUpdateParams {
+export interface PvlcMedCardsDetailParams {
   /** ID заявки */
   id: number;
 }
-
-export type PvlcMedCardsCompleteUpdateData = Record<string, any>;
-
-export type PvlcMedCardsCompleteUpdateError = Record<string, string>;
 
 export interface PvlcMedCardsFormUpdateParams {
   /** ID заявки */
   id: number;
 }
 
-export type PvlcMedCardsFormUpdateData = Record<string, string>;
-
-export type PvlcMedCardsFormUpdateError = Record<string, string>;
-
-export interface PvlcMedFormulasListParams {
-  /** Фильтр по категории */
-  category?: string;
-  /** Фильтр по полу */
-  gender?: string;
-  /** Минимальный возраст */
-  min_age?: number;
-  /** Максимальный возраст */
-  max_age?: number;
-  /** Активные формулы */
-  active?: boolean;
+export interface PvlcMedCardsListParams {
+  /** Фильтр по дате от */
+  date_from?: string;
+  /** Фильтр по дате до */
+  date_to?: string;
+  /** Фильтр по статусу */
+  status?: string;
 }
 
-export type PvlcMedFormulasListData = DsPvlcMedFormulaResponse[];
-
-export type PvlcMedFormulasCreateData = Record<string, any>;
-
-export type PvlcMedFormulasCreateError = Record<string, string>;
-
-export interface PvlcMedFormulasDetailParams {
-  /** ID формулы */
+export interface PvlcMedCardsUpdateParams {
+  /** ID заявки */
   id: number;
 }
-
-export type PvlcMedFormulasDetailData = DsPvlcMedFormulaResponse;
-
-export type PvlcMedFormulasDetailError = Record<string, string>;
-
-export interface PvlcMedFormulasUpdateParams {
-  /** ID формулы */
-  id: number;
-}
-
-export type PvlcMedFormulasUpdateData = Record<string, string>;
-
-export type PvlcMedFormulasUpdateError = Record<string, string>;
-
-export interface PvlcMedFormulasDeleteParams {
-  /** ID формулы */
-  id: number;
-}
-
-export type PvlcMedFormulasDeleteData = Record<string, string>;
-
-export type PvlcMedFormulasDeleteError = Record<string, string>;
 
 export interface PvlcMedFormulasAddToCartCreateParams {
   /** ID формулы */
   id: number;
 }
 
-export type PvlcMedFormulasAddToCartCreateData = Record<string, any>;
+export interface PvlcMedFormulasDeleteParams {
+  /** ID формулы */
+  id: number;
+}
 
-export type PvlcMedFormulasAddToCartCreateError = Record<string, string>;
-
-export interface PvlcMedFormulasImageCreatePayload {
-  /** Изображение формулы */
-  image: File;
+export interface PvlcMedFormulasDetailParams {
+  /** ID формулы */
+  id: number;
 }
 
 export interface PvlcMedFormulasImageCreateParams {
@@ -251,9 +182,28 @@ export interface PvlcMedFormulasImageCreateParams {
   id: number;
 }
 
-export type PvlcMedFormulasImageCreateData = Record<string, string>;
+export interface PvlcMedFormulasImageCreatePayload {
+  /** Изображение формулы */
+  image: File;
+}
 
-export type PvlcMedFormulasImageCreateError = Record<string, string>;
+export interface PvlcMedFormulasListParams {
+  /** Активные формулы */
+  active?: boolean;
+  /** Фильтр по категории */
+  category?: string;
+  /** Фильтр по полу */
+  gender?: string;
+  /** Максимальный возраст */
+  max_age?: number;
+  /** Минимальный возраст */
+  min_age?: number;
+}
+
+export interface PvlcMedFormulasUpdateParams {
+  /** ID формулы */
+  id: number;
+}
 
 export namespace Api {
   /**
@@ -262,7 +212,7 @@ export namespace Api {
    * @name AuthLoginCreate
    * @summary Аутентификация пользователя
    * @request POST:/api/auth/login
-   * @response `200` `AuthLoginCreateData` OK
+   * @response `200` `ApiLoginResponse` OK
    * @response `400` `Record<string,string>` Bad Request
    * @response `401` `Record<string,string>` Unauthorized
    */
@@ -271,7 +221,7 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = ApiLoginRequest;
     export type RequestHeaders = {};
-    export type ResponseBody = AuthLoginCreateData;
+    export type ResponseBody = ApiLoginResponse;
   }
 
   /**
@@ -281,15 +231,16 @@ export namespace Api {
    * @summary Выход пользователя
    * @request POST:/api/auth/logout
    * @secure
-   * @response `200` `AuthLogoutCreateData` OK
+   * @response `200` `Record<string,string>` OK
    * @response `400` `Record<string,string>` Bad Request
+   * @response `500` `Record<string,string>` Internal Server Error
    */
   export namespace AuthLogoutCreate {
     export type RequestParams = {};
     export type RequestQuery = {};
-    export type RequestBody = ApiLogoutRequest;
+    export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = AuthLogoutCreateData;
+    export type ResponseBody = Record<string, string>;
   }
 
   /**
@@ -299,7 +250,7 @@ export namespace Api {
    * @summary Получение профиля пользователя
    * @request GET:/api/auth/profile
    * @secure
-   * @response `200` `AuthProfileListData` OK
+   * @response `200` `DsMedUserResponse` OK
    * @response `401` `Record<string,string>` Unauthorized
    */
   export namespace AuthProfileList {
@@ -307,17 +258,145 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = AuthProfileListData;
+    export type ResponseBody = DsMedUserResponse;
   }
 
   /**
-   * @description Создает нового пользователя в системе (только для модераторов)
+   * @description Возвращает информацию о корзине пользователя (количество items). Для неавторизованных возвращает пустую корзину.
+   * @tags med_card
+   * @name MedCardIconList
+   * @summary Получение иконки корзины
+   * @request GET:/api/med_card/icon
+   * @response `200` `DsCartIconResponse` OK
+   */
+  export namespace MedCardIconList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = DsCartIconResponse;
+  }
+
+  /**
+   * @description Удаляет связь формулы с заявкой (только для владельца черновика)
+   * @tags med_calculations
+   * @name MedMmPvlcCalculationsDelete
+   * @summary Удаление расчета из заявки
+   * @request DELETE:/api/med-mm-pvlc-calculations
+   * @secure
+   * @response `200` `Record<string,string>` OK
+   * @response `400` `Record<string,string>` Bad Request
+   * @response `401` `Record<string,string>` Unauthorized
+   * @response `403` `Record<string,string>` Forbidden
+   * @response `500` `Record<string,string>` Internal Server Error
+   */
+  export namespace MedMmPvlcCalculationsDelete {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = DsDeleteMedMmPvlcCalculationRequest;
+    export type RequestHeaders = {};
+    export type ResponseBody = Record<string, string>;
+  }
+
+  /**
+   * @description Обновляет данные расчета в заявке (ввод роста)
+   * @tags med_calculations
+   * @name MedMmPvlcCalculationsUpdate
+   * @summary Обновление расчета в заявке
+   * @request PUT:/api/med-mm-pvlc-calculations
+   * @secure
+   * @response `200` `Record<string,string>` OK
+   * @response `400` `Record<string,string>` Bad Request
+   * @response `401` `Record<string,string>` Unauthorized
+   * @response `403` `Record<string,string>` Forbidden
+   * @response `500` `Record<string,string>` Internal Server Error
+   */
+  export namespace MedMmPvlcCalculationsUpdate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = DsUpdateMedMmPvlcCalculationAPIRequest;
+    export type RequestHeaders = {};
+    export type ResponseBody = Record<string, string>;
+  }
+
+  /**
+   * @description Выполняет вход пользователя
+   * @tags med_users
+   * @name MedUsersLoginCreate
+   * @summary Аутентификация пользователя (старый endpoint)
+   * @request POST:/api/med-users/login
+   * @response `200` `Record<string,any>` OK
+   * @response `400` `Record<string,string>` Bad Request
+   * @response `401` `Record<string,string>` Unauthorized
+   */
+  export namespace MedUsersLoginCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = DsLoginMedUserRequest;
+    export type RequestHeaders = {};
+    export type ResponseBody = Record<string, any>;
+  }
+
+  /**
+   * @description Завершает сессию пользователя
+   * @tags med_users
+   * @name MedUsersLogoutCreate
+   * @summary Выход пользователя (старый endpoint)
+   * @request POST:/api/med-users/logout
+   * @response `200` `Record<string,string>` OK
+   */
+  export namespace MedUsersLogoutCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = Record<string, string>;
+  }
+
+  /**
+   * @description Возвращает информацию о пользователе по ID (для демонстрации)
+   * @tags med_users
+   * @name MedUsersProfileList
+   * @summary Получение профиля пользователя (старый endpoint)
+   * @request GET:/api/med-users/profile
+   * @response `200` `DsMedUserResponse` OK
+   * @response `404` `Record<string,string>` Not Found
+   */
+  export namespace MedUsersProfileList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = DsMedUserResponse;
+  }
+
+  /**
+   * @description Обновляет данные профиля пользователя
+   * @tags med_users
+   * @name MedUsersProfileUpdate
+   * @summary Обновление профиля пользователя
+   * @request PUT:/api/med-users/profile
+   * @response `200` `Record<string,string>` OK
+   * @response `400` `Record<string,string>` Bad Request
+   * @response `404` `Record<string,string>` Not Found
+   * @response `500` `Record<string,string>` Internal Server Error
+   */
+  export namespace MedUsersProfileUpdate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = DsUpdateMedUserRequest;
+    export type RequestHeaders = {};
+    export type ResponseBody = Record<string, string>;
+  }
+
+  /**
+   * @description Создает нового пользователя в системе
    * @tags med_users
    * @name MedUsersRegisterCreate
    * @summary Регистрация нового пользователя
    * @request POST:/api/med-users/register
    * @secure
-   * @response `200` `MedUsersRegisterCreateData` OK
+   * @response `200` `Record<string,any>` OK
    * @response `400` `Record<string,string>` Bad Request
    * @response `403` `Record<string,string>` Forbidden
    * @response `500` `Record<string,string>` Internal Server Error
@@ -327,96 +406,30 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = DsMedUserRegistrationRequest;
     export type RequestHeaders = {};
-    export type ResponseBody = MedUsersRegisterCreateData;
+    export type ResponseBody = Record<string, any>;
   }
 
   /**
-   * @description Возвращает информацию о корзине пользователя (количество items)
-   * @tags med_card
-   * @name MedCardIconList
-   * @summary Получение иконки корзины
-   * @request GET:/api/med_card/icon
-   * @response `200` `MedCardIconListData` OK
-   * @response `401` `Record<string,string>` Unauthorized
-   */
-  export namespace MedCardIconList {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = MedCardIconListData;
-  }
-
-  /**
-   * @description Возвращает список заявок пользователя (для модераторов - все заявки)
+   * @description Завершает или отклоняет заявку (только для модераторов)
    * @tags medical-cards
-   * @name PvlcMedCardsList
-   * @summary Получение списка заявок
-   * @request GET:/api/pvlc-med-cards
+   * @name PvlcMedCardsCompleteUpdate
+   * @summary Завершение/отклонение заявки
+   * @request PUT:/api/pvlc-med-cards/{id}/complete
    * @secure
-   * @response `200` `PvlcMedCardsListData` OK
-   * @response `401` `Record<string,string>` Unauthorized
-   */
-  export namespace PvlcMedCardsList {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /** Фильтр по статусу */
-      status?: string;
-      /** Фильтр по дате от */
-      date_from?: string;
-      /** Фильтр по дате до */
-      date_to?: string;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = PvlcMedCardsListData;
-  }
-
-  /**
-   * @description Возвращает информацию о конкретной заявке
-   * @tags medical-cards
-   * @name PvlcMedCardsDetail
-   * @summary Получение конкретной заявки
-   * @request GET:/api/pvlc-med-cards/{id}
-   * @secure
-   * @response `200` `PvlcMedCardsDetailData` OK
+   * @response `200` `Record<string,any>` OK
    * @response `400` `Record<string,string>` Bad Request
-   * @response `401` `Record<string,string>` Unauthorized
-   * @response `404` `Record<string,string>` Not Found
-   */
-  export namespace PvlcMedCardsDetail {
-    export type RequestParams = {
-      /** ID заявки */
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = PvlcMedCardsDetailData;
-  }
-
-  /**
-   * @description Обновляет поля заявки (только для владельца)
-   * @tags medical-cards
-   * @name PvlcMedCardsUpdate
-   * @summary Обновление заявки
-   * @request PUT:/api/pvlc-med-cards/{id}
-   * @secure
-   * @response `200` `PvlcMedCardsUpdateData` OK
-   * @response `400` `Record<string,string>` Bad Request
-   * @response `401` `Record<string,string>` Unauthorized
    * @response `403` `Record<string,string>` Forbidden
    * @response `404` `Record<string,string>` Not Found
    */
-  export namespace PvlcMedCardsUpdate {
+  export namespace PvlcMedCardsCompleteUpdate {
     export type RequestParams = {
       /** ID заявки */
       id: number;
     };
     export type RequestQuery = {};
-    export type RequestBody = DsUpdatePvlcMedCardRequest;
+    export type RequestBody = DsCompletePvlcMedCardRequest;
     export type RequestHeaders = {};
-    export type ResponseBody = PvlcMedCardsUpdateData;
+    export type ResponseBody = Record<string, any>;
   }
 
   /**
@@ -426,7 +439,7 @@ export namespace Api {
    * @summary Удаление заявки
    * @request DELETE:/api/pvlc-med-cards/{id}
    * @secure
-   * @response `200` `PvlcMedCardsDeleteData` OK
+   * @response `200` `Record<string,string>` OK
    * @response `400` `Record<string,string>` Bad Request
    * @response `401` `Record<string,string>` Unauthorized
    * @response `403` `Record<string,string>` Forbidden
@@ -440,30 +453,30 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = PvlcMedCardsDeleteData;
+    export type ResponseBody = Record<string, string>;
   }
 
   /**
-   * @description Завершает или отклоняет заявку (только для модераторов)
+   * @description Возвращает информацию о конкретной заявке
    * @tags medical-cards
-   * @name PvlcMedCardsCompleteUpdate
-   * @summary Завершение/отклонение заявки
-   * @request PUT:/api/pvlc-med-cards/{id}/complete
+   * @name PvlcMedCardsDetail
+   * @summary Получение конкретной заявки
+   * @request GET:/api/pvlc-med-cards/{id}
    * @secure
-   * @response `200` `PvlcMedCardsCompleteUpdateData` OK
+   * @response `200` `DsPvlcMedCardResponse` OK
    * @response `400` `Record<string,string>` Bad Request
-   * @response `403` `Record<string,string>` Forbidden
+   * @response `401` `Record<string,string>` Unauthorized
    * @response `404` `Record<string,string>` Not Found
    */
-  export namespace PvlcMedCardsCompleteUpdate {
+  export namespace PvlcMedCardsDetail {
     export type RequestParams = {
       /** ID заявки */
       id: number;
     };
     export type RequestQuery = {};
-    export type RequestBody = DsCompletePvlcMedCardRequest;
+    export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = PvlcMedCardsCompleteUpdateData;
+    export type ResponseBody = DsPvlcMedCardResponse;
   }
 
   /**
@@ -473,7 +486,7 @@ export namespace Api {
    * @summary Формирование заявки
    * @request PUT:/api/pvlc-med-cards/{id}/form
    * @secure
-   * @response `200` `PvlcMedCardsFormUpdateData` OK
+   * @response `200` `Record<string,string>` OK
    * @response `400` `Record<string,string>` Bad Request
    * @response `401` `Record<string,string>` Unauthorized
    * @response `403` `Record<string,string>` Forbidden
@@ -487,34 +500,78 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = PvlcMedCardsFormUpdateData;
+    export type ResponseBody = Record<string, string>;
   }
 
   /**
-   * @description Возвращает список формул с возможностью фильтрации
-   * @tags med_formulas
-   * @name PvlcMedFormulasList
-   * @summary Получение списка формул
-   * @request GET:/api/pvlc-med-formulas
-   * @response `200` `PvlcMedFormulasListData` OK
+   * @description Возвращает список заявок пользователя (для модераторов - все заявки)
+   * @tags medical-cards
+   * @name PvlcMedCardsList
+   * @summary Получение списка заявок
+   * @request GET:/api/pvlc-med-cards
+   * @secure
+   * @response `200` `(DsPvlcMedCardResponse)[]` OK
+   * @response `401` `Record<string,string>` Unauthorized
    */
-  export namespace PvlcMedFormulasList {
+  export namespace PvlcMedCardsList {
     export type RequestParams = {};
     export type RequestQuery = {
-      /** Фильтр по категории */
-      category?: string;
-      /** Фильтр по полу */
-      gender?: string;
-      /** Минимальный возраст */
-      min_age?: number;
-      /** Максимальный возраст */
-      max_age?: number;
-      /** Активные формулы */
-      active?: boolean;
+      /** Фильтр по дате от */
+      date_from?: string;
+      /** Фильтр по дате до */
+      date_to?: string;
+      /** Фильтр по статусу */
+      status?: string;
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = PvlcMedFormulasListData;
+    export type ResponseBody = DsPvlcMedCardResponse[];
+  }
+
+  /**
+   * @description Обновляет поля заявки (только для владельца)
+   * @tags medical-cards
+   * @name PvlcMedCardsUpdate
+   * @summary Обновление заявки
+   * @request PUT:/api/pvlc-med-cards/{id}
+   * @secure
+   * @response `200` `Record<string,string>` OK
+   * @response `400` `Record<string,string>` Bad Request
+   * @response `401` `Record<string,string>` Unauthorized
+   * @response `403` `Record<string,string>` Forbidden
+   * @response `404` `Record<string,string>` Not Found
+   */
+  export namespace PvlcMedCardsUpdate {
+    export type RequestParams = {
+      /** ID заявки */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = DsUpdatePvlcMedCardRequest;
+    export type RequestHeaders = {};
+    export type ResponseBody = Record<string, string>;
+  }
+
+  /**
+   * @description Добавляет формулу в заявку-черновик пользователя
+   * @tags med_formulas
+   * @name PvlcMedFormulasAddToCartCreate
+   * @summary Добавление формулы в корзину
+   * @request POST:/api/pvlc-med-formulas/{id}/add-to-cart
+   * @secure
+   * @response `200` `Record<string,any>` OK
+   * @response `400` `Record<string,string>` Bad Request
+   * @response `401` `Record<string,string>` Unauthorized
+   */
+  export namespace PvlcMedFormulasAddToCartCreate {
+    export type RequestParams = {
+      /** ID формулы */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = Record<string, any>;
   }
 
   /**
@@ -524,7 +581,7 @@ export namespace Api {
    * @summary Создание новой формулы
    * @request POST:/api/pvlc-med-formulas
    * @secure
-   * @response `200` `PvlcMedFormulasCreateData` OK
+   * @response `200` `Record<string,any>` OK
    * @response `400` `Record<string,string>` Bad Request
    * @response `403` `Record<string,string>` Forbidden
    */
@@ -533,51 +590,7 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = DsCreatePvlcMedFormulaRequest;
     export type RequestHeaders = {};
-    export type ResponseBody = PvlcMedFormulasCreateData;
-  }
-
-  /**
-   * @description Возвращает информацию о конкретной формуле ДЖЕЛ
-   * @tags med_formulas
-   * @name PvlcMedFormulasDetail
-   * @summary Получение конкретной формулы
-   * @request GET:/api/pvlc-med-formulas/{id}
-   * @response `200` `PvlcMedFormulasDetailData` OK
-   * @response `400` `Record<string,string>` Bad Request
-   * @response `404` `Record<string,string>` Not Found
-   */
-  export namespace PvlcMedFormulasDetail {
-    export type RequestParams = {
-      /** ID формулы */
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = PvlcMedFormulasDetailData;
-  }
-
-  /**
-   * @description Обновляет существующую формулу ДЖЕЛ (только для модераторов)
-   * @tags med_formulas
-   * @name PvlcMedFormulasUpdate
-   * @summary Обновление формулы
-   * @request PUT:/api/pvlc-med-formulas/{id}
-   * @secure
-   * @response `200` `PvlcMedFormulasUpdateData` OK
-   * @response `400` `Record<string,string>` Bad Request
-   * @response `403` `Record<string,string>` Forbidden
-   * @response `404` `Record<string,string>` Not Found
-   */
-  export namespace PvlcMedFormulasUpdate {
-    export type RequestParams = {
-      /** ID формулы */
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = DsUpdatePvlcMedFormulaRequest;
-    export type RequestHeaders = {};
-    export type ResponseBody = PvlcMedFormulasUpdateData;
+    export type ResponseBody = Record<string, any>;
   }
 
   /**
@@ -587,7 +600,7 @@ export namespace Api {
    * @summary Удаление формулы
    * @request DELETE:/api/pvlc-med-formulas/{id}
    * @secure
-   * @response `200` `PvlcMedFormulasDeleteData` OK
+   * @response `200` `Record<string,string>` OK
    * @response `400` `Record<string,string>` Bad Request
    * @response `403` `Record<string,string>` Forbidden
    * @response `404` `Record<string,string>` Not Found
@@ -600,21 +613,20 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = PvlcMedFormulasDeleteData;
+    export type ResponseBody = Record<string, string>;
   }
 
   /**
-   * @description Добавляет формулу в заявку-черновик пользователя
+   * @description Возвращает информацию о конкретной формуле ДЖЕЛ
    * @tags med_formulas
-   * @name PvlcMedFormulasAddToCartCreate
-   * @summary Добавление формулы в корзину
-   * @request POST:/api/pvlc-med-formulas/{id}/add-to-cart
-   * @secure
-   * @response `200` `PvlcMedFormulasAddToCartCreateData` OK
+   * @name PvlcMedFormulasDetail
+   * @summary Получение конкретной формулы
+   * @request GET:/api/pvlc-med-formulas/{id}
+   * @response `200` `DsPvlcMedFormulaResponse` OK
    * @response `400` `Record<string,string>` Bad Request
-   * @response `401` `Record<string,string>` Unauthorized
+   * @response `404` `Record<string,string>` Not Found
    */
-  export namespace PvlcMedFormulasAddToCartCreate {
+  export namespace PvlcMedFormulasDetail {
     export type RequestParams = {
       /** ID формулы */
       id: number;
@@ -622,7 +634,7 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = PvlcMedFormulasAddToCartCreateData;
+    export type ResponseBody = DsPvlcMedFormulaResponse;
   }
 
   /**
@@ -632,7 +644,7 @@ export namespace Api {
    * @summary Загрузка изображения для формулы
    * @request POST:/api/pvlc-med-formulas/{id}/image
    * @secure
-   * @response `200` `PvlcMedFormulasImageCreateData` OK
+   * @response `200` `Record<string,string>` OK
    * @response `400` `Record<string,string>` Bad Request
    * @response `403` `Record<string,string>` Forbidden
    * @response `404` `Record<string,string>` Not Found
@@ -645,14 +657,63 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = PvlcMedFormulasImageCreatePayload;
     export type RequestHeaders = {};
-    export type ResponseBody = PvlcMedFormulasImageCreateData;
+    export type ResponseBody = Record<string, string>;
+  }
+
+  /**
+   * @description Возвращает список формул с возможностью фильтрации
+   * @tags med_formulas
+   * @name PvlcMedFormulasList
+   * @summary Получение списка формул
+   * @request GET:/api/pvlc-med-formulas
+   * @response `200` `(DsPvlcMedFormulaResponse)[]` OK
+   */
+  export namespace PvlcMedFormulasList {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** Активные формулы */
+      active?: boolean;
+      /** Фильтр по категории */
+      category?: string;
+      /** Фильтр по полу */
+      gender?: string;
+      /** Максимальный возраст */
+      max_age?: number;
+      /** Минимальный возраст */
+      min_age?: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = DsPvlcMedFormulaResponse[];
+  }
+
+  /**
+   * @description Обновляет существующую формулу ДЖЕЛ (только для модераторов)
+   * @tags med_formulas
+   * @name PvlcMedFormulasUpdate
+   * @summary Обновление формулы
+   * @request PUT:/api/pvlc-med-formulas/{id}
+   * @secure
+   * @response `200` `Record<string,string>` OK
+   * @response `400` `Record<string,string>` Bad Request
+   * @response `403` `Record<string,string>` Forbidden
+   * @response `404` `Record<string,string>` Not Found
+   */
+  export namespace PvlcMedFormulasUpdate {
+    export type RequestParams = {
+      /** ID формулы */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = DsUpdatePvlcMedFormulaRequest;
+    export type RequestHeaders = {};
+    export type ResponseBody = Record<string, string>;
   }
 }
 
 import type {
   AxiosInstance,
   AxiosRequestConfig,
-  AxiosResponse,
   HeadersDefaults,
   ResponseType,
 } from "axios";
@@ -783,7 +844,7 @@ export class HttpClient<SecurityDataType = unknown> {
     format,
     body,
     ...params
-  }: FullRequestParams): Promise<AxiosResponse<T>> => {
+  }: FullRequestParams): Promise<T> => {
     const secureParams =
       ((typeof secure === "boolean" ? secure : this.secure) &&
         this.securityWorker &&
@@ -810,17 +871,19 @@ export class HttpClient<SecurityDataType = unknown> {
       body = JSON.stringify(body);
     }
 
-    return this.instance.request({
-      ...requestParams,
-      headers: {
-        ...(requestParams.headers || {}),
-        ...(type ? { "Content-Type": type } : {}),
-      },
-      params: query,
-      responseType: responseFormat,
-      data: body,
-      url: path,
-    });
+    return this.instance
+      .request({
+        ...requestParams,
+        headers: {
+          ...(requestParams.headers || {}),
+          ...(type ? { "Content-Type": type } : {}),
+        },
+        params: query,
+        responseType: responseFormat,
+        data: body,
+        url: path,
+      })
+      .then((response) => response.data);
   };
 }
 
@@ -833,9 +896,13 @@ export class HttpClient<SecurityDataType = unknown> {
  * API для расчета должной жизненной емкости легких (ДЖЕЛ)
  * Лабораторная работа 4 - Добавление аутентификации и авторизации
  */
-export class Api<
-  SecurityDataType extends unknown,
-> extends HttpClient<SecurityDataType> {
+export class Api<SecurityDataType extends unknown> {
+  http: HttpClient<SecurityDataType>;
+
+  constructor(http: HttpClient<SecurityDataType>) {
+    this.http = http;
+  }
+
   api = {
     /**
      * @description Выполняет вход пользователя и возвращает JWT токен
@@ -844,12 +911,12 @@ export class Api<
      * @name AuthLoginCreate
      * @summary Аутентификация пользователя
      * @request POST:/api/auth/login
-     * @response `200` `AuthLoginCreateData` OK
+     * @response `200` `ApiLoginResponse` OK
      * @response `400` `Record<string,string>` Bad Request
      * @response `401` `Record<string,string>` Unauthorized
      */
     authLoginCreate: (request: ApiLoginRequest, params: RequestParams = {}) =>
-      this.request<AuthLoginCreateData, AuthLoginCreateError>({
+      this.http.request<ApiLoginResponse, Record<string, string>>({
         path: `/api/auth/login`,
         method: "POST",
         body: request,
@@ -866,16 +933,15 @@ export class Api<
      * @summary Выход пользователя
      * @request POST:/api/auth/logout
      * @secure
-     * @response `200` `AuthLogoutCreateData` OK
+     * @response `200` `Record<string,string>` OK
      * @response `400` `Record<string,string>` Bad Request
+     * @response `500` `Record<string,string>` Internal Server Error
      */
-    authLogoutCreate: (request: ApiLogoutRequest, params: RequestParams = {}) =>
-      this.request<AuthLogoutCreateData, AuthLogoutCreateError>({
+    authLogoutCreate: (params: RequestParams = {}) =>
+      this.http.request<Record<string, string>, Record<string, string>>({
         path: `/api/auth/logout`,
         method: "POST",
-        body: request,
         secure: true,
-        type: ContentType.Json,
         format: "json",
         ...params,
       }),
@@ -888,11 +954,11 @@ export class Api<
      * @summary Получение профиля пользователя
      * @request GET:/api/auth/profile
      * @secure
-     * @response `200` `AuthProfileListData` OK
+     * @response `200` `DsMedUserResponse` OK
      * @response `401` `Record<string,string>` Unauthorized
      */
     authProfileList: (params: RequestParams = {}) =>
-      this.request<AuthProfileListData, AuthProfileListError>({
+      this.http.request<DsMedUserResponse, Record<string, string>>({
         path: `/api/auth/profile`,
         method: "GET",
         secure: true,
@@ -901,14 +967,171 @@ export class Api<
       }),
 
     /**
-     * @description Создает нового пользователя в системе (только для модераторов)
+     * @description Возвращает информацию о корзине пользователя (количество items). Для неавторизованных возвращает пустую корзину.
+     *
+     * @tags med_card
+     * @name MedCardIconList
+     * @summary Получение иконки корзины
+     * @request GET:/api/med_card/icon
+     * @response `200` `DsCartIconResponse` OK
+     */
+    medCardIconList: (params: RequestParams = {}) =>
+      this.http.request<DsCartIconResponse, any>({
+        path: `/api/med_card/icon`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Удаляет связь формулы с заявкой (только для владельца черновика)
+     *
+     * @tags med_calculations
+     * @name MedMmPvlcCalculationsDelete
+     * @summary Удаление расчета из заявки
+     * @request DELETE:/api/med-mm-pvlc-calculations
+     * @secure
+     * @response `200` `Record<string,string>` OK
+     * @response `400` `Record<string,string>` Bad Request
+     * @response `401` `Record<string,string>` Unauthorized
+     * @response `403` `Record<string,string>` Forbidden
+     * @response `500` `Record<string,string>` Internal Server Error
+     */
+    medMmPvlcCalculationsDelete: (
+      request: DsDeleteMedMmPvlcCalculationRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<Record<string, string>, Record<string, string>>({
+        path: `/api/med-mm-pvlc-calculations`,
+        method: "DELETE",
+        body: request,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Обновляет данные расчета в заявке (ввод роста)
+     *
+     * @tags med_calculations
+     * @name MedMmPvlcCalculationsUpdate
+     * @summary Обновление расчета в заявке
+     * @request PUT:/api/med-mm-pvlc-calculations
+     * @secure
+     * @response `200` `Record<string,string>` OK
+     * @response `400` `Record<string,string>` Bad Request
+     * @response `401` `Record<string,string>` Unauthorized
+     * @response `403` `Record<string,string>` Forbidden
+     * @response `500` `Record<string,string>` Internal Server Error
+     */
+    medMmPvlcCalculationsUpdate: (
+      request: DsUpdateMedMmPvlcCalculationAPIRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<Record<string, string>, Record<string, string>>({
+        path: `/api/med-mm-pvlc-calculations`,
+        method: "PUT",
+        body: request,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Выполняет вход пользователя
+     *
+     * @tags med_users
+     * @name MedUsersLoginCreate
+     * @summary Аутентификация пользователя (старый endpoint)
+     * @request POST:/api/med-users/login
+     * @response `200` `Record<string,any>` OK
+     * @response `400` `Record<string,string>` Bad Request
+     * @response `401` `Record<string,string>` Unauthorized
+     */
+    medUsersLoginCreate: (
+      request: DsLoginMedUserRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<Record<string, any>, Record<string, string>>({
+        path: `/api/med-users/login`,
+        method: "POST",
+        body: request,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Завершает сессию пользователя
+     *
+     * @tags med_users
+     * @name MedUsersLogoutCreate
+     * @summary Выход пользователя (старый endpoint)
+     * @request POST:/api/med-users/logout
+     * @response `200` `Record<string,string>` OK
+     */
+    medUsersLogoutCreate: (params: RequestParams = {}) =>
+      this.http.request<Record<string, string>, any>({
+        path: `/api/med-users/logout`,
+        method: "POST",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Возвращает информацию о пользователе по ID (для демонстрации)
+     *
+     * @tags med_users
+     * @name MedUsersProfileList
+     * @summary Получение профиля пользователя (старый endpoint)
+     * @request GET:/api/med-users/profile
+     * @response `200` `DsMedUserResponse` OK
+     * @response `404` `Record<string,string>` Not Found
+     */
+    medUsersProfileList: (params: RequestParams = {}) =>
+      this.http.request<DsMedUserResponse, Record<string, string>>({
+        path: `/api/med-users/profile`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Обновляет данные профиля пользователя
+     *
+     * @tags med_users
+     * @name MedUsersProfileUpdate
+     * @summary Обновление профиля пользователя
+     * @request PUT:/api/med-users/profile
+     * @response `200` `Record<string,string>` OK
+     * @response `400` `Record<string,string>` Bad Request
+     * @response `404` `Record<string,string>` Not Found
+     * @response `500` `Record<string,string>` Internal Server Error
+     */
+    medUsersProfileUpdate: (
+      request: DsUpdateMedUserRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<Record<string, string>, Record<string, string>>({
+        path: `/api/med-users/profile`,
+        method: "PUT",
+        body: request,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Создает нового пользователя в системе
      *
      * @tags med_users
      * @name MedUsersRegisterCreate
      * @summary Регистрация нового пользователя
      * @request POST:/api/med-users/register
      * @secure
-     * @response `200` `MedUsersRegisterCreateData` OK
+     * @response `200` `Record<string,any>` OK
      * @response `400` `Record<string,string>` Bad Request
      * @response `403` `Record<string,string>` Forbidden
      * @response `500` `Record<string,string>` Internal Server Error
@@ -917,7 +1140,7 @@ export class Api<
       request: DsMedUserRegistrationRequest,
       params: RequestParams = {},
     ) =>
-      this.request<MedUsersRegisterCreateData, MedUsersRegisterCreateError>({
+      this.http.request<Record<string, any>, Record<string, string>>({
         path: `/api/med-users/register`,
         method: "POST",
         body: request,
@@ -928,93 +1151,25 @@ export class Api<
       }),
 
     /**
-     * @description Возвращает информацию о корзине пользователя (количество items)
-     *
-     * @tags med_card
-     * @name MedCardIconList
-     * @summary Получение иконки корзины
-     * @request GET:/api/med_card/icon
-     * @response `200` `MedCardIconListData` OK
-     * @response `401` `Record<string,string>` Unauthorized
-     */
-    medCardIconList: (params: RequestParams = {}) =>
-      this.request<MedCardIconListData, MedCardIconListError>({
-        path: `/api/med_card/icon`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Возвращает список заявок пользователя (для модераторов - все заявки)
+     * @description Завершает или отклоняет заявку (только для модераторов)
      *
      * @tags medical-cards
-     * @name PvlcMedCardsList
-     * @summary Получение списка заявок
-     * @request GET:/api/pvlc-med-cards
+     * @name PvlcMedCardsCompleteUpdate
+     * @summary Завершение/отклонение заявки
+     * @request PUT:/api/pvlc-med-cards/{id}/complete
      * @secure
-     * @response `200` `PvlcMedCardsListData` OK
-     * @response `401` `Record<string,string>` Unauthorized
-     */
-    pvlcMedCardsList: (
-      query: PvlcMedCardsListParams,
-      params: RequestParams = {},
-    ) =>
-      this.request<PvlcMedCardsListData, PvlcMedCardsListError>({
-        path: `/api/pvlc-med-cards`,
-        method: "GET",
-        query: query,
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Возвращает информацию о конкретной заявке
-     *
-     * @tags medical-cards
-     * @name PvlcMedCardsDetail
-     * @summary Получение конкретной заявки
-     * @request GET:/api/pvlc-med-cards/{id}
-     * @secure
-     * @response `200` `PvlcMedCardsDetailData` OK
+     * @response `200` `Record<string,any>` OK
      * @response `400` `Record<string,string>` Bad Request
-     * @response `401` `Record<string,string>` Unauthorized
-     * @response `404` `Record<string,string>` Not Found
-     */
-    pvlcMedCardsDetail: (
-      { id, ...query }: PvlcMedCardsDetailParams,
-      params: RequestParams = {},
-    ) =>
-      this.request<PvlcMedCardsDetailData, PvlcMedCardsDetailError>({
-        path: `/api/pvlc-med-cards/${id}`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Обновляет поля заявки (только для владельца)
-     *
-     * @tags medical-cards
-     * @name PvlcMedCardsUpdate
-     * @summary Обновление заявки
-     * @request PUT:/api/pvlc-med-cards/{id}
-     * @secure
-     * @response `200` `PvlcMedCardsUpdateData` OK
-     * @response `400` `Record<string,string>` Bad Request
-     * @response `401` `Record<string,string>` Unauthorized
      * @response `403` `Record<string,string>` Forbidden
      * @response `404` `Record<string,string>` Not Found
      */
-    pvlcMedCardsUpdate: (
-      { id, ...query }: PvlcMedCardsUpdateParams,
-      request: DsUpdatePvlcMedCardRequest,
+    pvlcMedCardsCompleteUpdate: (
+      { id, ...query }: PvlcMedCardsCompleteUpdateParams,
+      request: DsCompletePvlcMedCardRequest,
       params: RequestParams = {},
     ) =>
-      this.request<PvlcMedCardsUpdateData, PvlcMedCardsUpdateError>({
-        path: `/api/pvlc-med-cards/${id}`,
+      this.http.request<Record<string, any>, Record<string, string>>({
+        path: `/api/pvlc-med-cards/${id}/complete`,
         method: "PUT",
         body: request,
         secure: true,
@@ -1031,7 +1186,7 @@ export class Api<
      * @summary Удаление заявки
      * @request DELETE:/api/pvlc-med-cards/{id}
      * @secure
-     * @response `200` `PvlcMedCardsDeleteData` OK
+     * @response `200` `Record<string,string>` OK
      * @response `400` `Record<string,string>` Bad Request
      * @response `401` `Record<string,string>` Unauthorized
      * @response `403` `Record<string,string>` Forbidden
@@ -1041,7 +1196,7 @@ export class Api<
       { id, ...query }: PvlcMedCardsDeleteParams,
       params: RequestParams = {},
     ) =>
-      this.request<PvlcMedCardsDeleteData, PvlcMedCardsDeleteError>({
+      this.http.request<Record<string, string>, Record<string, string>>({
         path: `/api/pvlc-med-cards/${id}`,
         method: "DELETE",
         secure: true,
@@ -1050,32 +1205,26 @@ export class Api<
       }),
 
     /**
-     * @description Завершает или отклоняет заявку (только для модераторов)
+     * @description Возвращает информацию о конкретной заявке
      *
      * @tags medical-cards
-     * @name PvlcMedCardsCompleteUpdate
-     * @summary Завершение/отклонение заявки
-     * @request PUT:/api/pvlc-med-cards/{id}/complete
+     * @name PvlcMedCardsDetail
+     * @summary Получение конкретной заявки
+     * @request GET:/api/pvlc-med-cards/{id}
      * @secure
-     * @response `200` `PvlcMedCardsCompleteUpdateData` OK
+     * @response `200` `DsPvlcMedCardResponse` OK
      * @response `400` `Record<string,string>` Bad Request
-     * @response `403` `Record<string,string>` Forbidden
+     * @response `401` `Record<string,string>` Unauthorized
      * @response `404` `Record<string,string>` Not Found
      */
-    pvlcMedCardsCompleteUpdate: (
-      { id, ...query }: PvlcMedCardsCompleteUpdateParams,
-      request: DsCompletePvlcMedCardRequest,
+    pvlcMedCardsDetail: (
+      { id, ...query }: PvlcMedCardsDetailParams,
       params: RequestParams = {},
     ) =>
-      this.request<
-        PvlcMedCardsCompleteUpdateData,
-        PvlcMedCardsCompleteUpdateError
-      >({
-        path: `/api/pvlc-med-cards/${id}/complete`,
-        method: "PUT",
-        body: request,
+      this.http.request<DsPvlcMedCardResponse, Record<string, string>>({
+        path: `/api/pvlc-med-cards/${id}`,
+        method: "GET",
         secure: true,
-        type: ContentType.Json,
         format: "json",
         ...params,
       }),
@@ -1088,7 +1237,7 @@ export class Api<
      * @summary Формирование заявки
      * @request PUT:/api/pvlc-med-cards/{id}/form
      * @secure
-     * @response `200` `PvlcMedCardsFormUpdateData` OK
+     * @response `200` `Record<string,string>` OK
      * @response `400` `Record<string,string>` Bad Request
      * @response `401` `Record<string,string>` Unauthorized
      * @response `403` `Record<string,string>` Forbidden
@@ -1098,7 +1247,7 @@ export class Api<
       { id, ...query }: PvlcMedCardsFormUpdateParams,
       params: RequestParams = {},
     ) =>
-      this.request<PvlcMedCardsFormUpdateData, PvlcMedCardsFormUpdateError>({
+      this.http.request<Record<string, string>, Record<string, string>>({
         path: `/api/pvlc-med-cards/${id}/form`,
         method: "PUT",
         secure: true,
@@ -1107,22 +1256,78 @@ export class Api<
       }),
 
     /**
-     * @description Возвращает список формул с возможностью фильтрации
+     * @description Возвращает список заявок пользователя (для модераторов - все заявки)
      *
-     * @tags med_formulas
-     * @name PvlcMedFormulasList
-     * @summary Получение списка формул
-     * @request GET:/api/pvlc-med-formulas
-     * @response `200` `PvlcMedFormulasListData` OK
+     * @tags medical-cards
+     * @name PvlcMedCardsList
+     * @summary Получение списка заявок
+     * @request GET:/api/pvlc-med-cards
+     * @secure
+     * @response `200` `(DsPvlcMedCardResponse)[]` OK
+     * @response `401` `Record<string,string>` Unauthorized
      */
-    pvlcMedFormulasList: (
-      query: PvlcMedFormulasListParams,
+    pvlcMedCardsList: (
+      query: PvlcMedCardsListParams,
       params: RequestParams = {},
     ) =>
-      this.request<PvlcMedFormulasListData, any>({
-        path: `/api/pvlc-med-formulas`,
+      this.http.request<DsPvlcMedCardResponse[], Record<string, string>>({
+        path: `/api/pvlc-med-cards`,
         method: "GET",
         query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Обновляет поля заявки (только для владельца)
+     *
+     * @tags medical-cards
+     * @name PvlcMedCardsUpdate
+     * @summary Обновление заявки
+     * @request PUT:/api/pvlc-med-cards/{id}
+     * @secure
+     * @response `200` `Record<string,string>` OK
+     * @response `400` `Record<string,string>` Bad Request
+     * @response `401` `Record<string,string>` Unauthorized
+     * @response `403` `Record<string,string>` Forbidden
+     * @response `404` `Record<string,string>` Not Found
+     */
+    pvlcMedCardsUpdate: (
+      { id, ...query }: PvlcMedCardsUpdateParams,
+      request: DsUpdatePvlcMedCardRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<Record<string, string>, Record<string, string>>({
+        path: `/api/pvlc-med-cards/${id}`,
+        method: "PUT",
+        body: request,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Добавляет формулу в заявку-черновик пользователя
+     *
+     * @tags med_formulas
+     * @name PvlcMedFormulasAddToCartCreate
+     * @summary Добавление формулы в корзину
+     * @request POST:/api/pvlc-med-formulas/{id}/add-to-cart
+     * @secure
+     * @response `200` `Record<string,any>` OK
+     * @response `400` `Record<string,string>` Bad Request
+     * @response `401` `Record<string,string>` Unauthorized
+     */
+    pvlcMedFormulasAddToCartCreate: (
+      { id, ...query }: PvlcMedFormulasAddToCartCreateParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<Record<string, any>, Record<string, string>>({
+        path: `/api/pvlc-med-formulas/${id}/add-to-cart`,
+        method: "POST",
+        secure: true,
         format: "json",
         ...params,
       }),
@@ -1135,7 +1340,7 @@ export class Api<
      * @summary Создание новой формулы
      * @request POST:/api/pvlc-med-formulas
      * @secure
-     * @response `200` `PvlcMedFormulasCreateData` OK
+     * @response `200` `Record<string,any>` OK
      * @response `400` `Record<string,string>` Bad Request
      * @response `403` `Record<string,string>` Forbidden
      */
@@ -1143,59 +1348,9 @@ export class Api<
       request: DsCreatePvlcMedFormulaRequest,
       params: RequestParams = {},
     ) =>
-      this.request<PvlcMedFormulasCreateData, PvlcMedFormulasCreateError>({
+      this.http.request<Record<string, any>, Record<string, string>>({
         path: `/api/pvlc-med-formulas`,
         method: "POST",
-        body: request,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Возвращает информацию о конкретной формуле ДЖЕЛ
-     *
-     * @tags med_formulas
-     * @name PvlcMedFormulasDetail
-     * @summary Получение конкретной формулы
-     * @request GET:/api/pvlc-med-formulas/{id}
-     * @response `200` `PvlcMedFormulasDetailData` OK
-     * @response `400` `Record<string,string>` Bad Request
-     * @response `404` `Record<string,string>` Not Found
-     */
-    pvlcMedFormulasDetail: (
-      { id, ...query }: PvlcMedFormulasDetailParams,
-      params: RequestParams = {},
-    ) =>
-      this.request<PvlcMedFormulasDetailData, PvlcMedFormulasDetailError>({
-        path: `/api/pvlc-med-formulas/${id}`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Обновляет существующую формулу ДЖЕЛ (только для модераторов)
-     *
-     * @tags med_formulas
-     * @name PvlcMedFormulasUpdate
-     * @summary Обновление формулы
-     * @request PUT:/api/pvlc-med-formulas/{id}
-     * @secure
-     * @response `200` `PvlcMedFormulasUpdateData` OK
-     * @response `400` `Record<string,string>` Bad Request
-     * @response `403` `Record<string,string>` Forbidden
-     * @response `404` `Record<string,string>` Not Found
-     */
-    pvlcMedFormulasUpdate: (
-      { id, ...query }: PvlcMedFormulasUpdateParams,
-      request: DsUpdatePvlcMedFormulaRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<PvlcMedFormulasUpdateData, PvlcMedFormulasUpdateError>({
-        path: `/api/pvlc-med-formulas/${id}`,
-        method: "PUT",
         body: request,
         secure: true,
         type: ContentType.Json,
@@ -1211,7 +1366,7 @@ export class Api<
      * @summary Удаление формулы
      * @request DELETE:/api/pvlc-med-formulas/{id}
      * @secure
-     * @response `200` `PvlcMedFormulasDeleteData` OK
+     * @response `200` `Record<string,string>` OK
      * @response `400` `Record<string,string>` Bad Request
      * @response `403` `Record<string,string>` Forbidden
      * @response `404` `Record<string,string>` Not Found
@@ -1220,7 +1375,7 @@ export class Api<
       { id, ...query }: PvlcMedFormulasDeleteParams,
       params: RequestParams = {},
     ) =>
-      this.request<PvlcMedFormulasDeleteData, PvlcMedFormulasDeleteError>({
+      this.http.request<Record<string, string>, Record<string, string>>({
         path: `/api/pvlc-med-formulas/${id}`,
         method: "DELETE",
         secure: true,
@@ -1229,28 +1384,23 @@ export class Api<
       }),
 
     /**
-     * @description Добавляет формулу в заявку-черновик пользователя
+     * @description Возвращает информацию о конкретной формуле ДЖЕЛ
      *
      * @tags med_formulas
-     * @name PvlcMedFormulasAddToCartCreate
-     * @summary Добавление формулы в корзину
-     * @request POST:/api/pvlc-med-formulas/{id}/add-to-cart
-     * @secure
-     * @response `200` `PvlcMedFormulasAddToCartCreateData` OK
+     * @name PvlcMedFormulasDetail
+     * @summary Получение конкретной формулы
+     * @request GET:/api/pvlc-med-formulas/{id}
+     * @response `200` `DsPvlcMedFormulaResponse` OK
      * @response `400` `Record<string,string>` Bad Request
-     * @response `401` `Record<string,string>` Unauthorized
+     * @response `404` `Record<string,string>` Not Found
      */
-    pvlcMedFormulasAddToCartCreate: (
-      { id, ...query }: PvlcMedFormulasAddToCartCreateParams,
+    pvlcMedFormulasDetail: (
+      { id, ...query }: PvlcMedFormulasDetailParams,
       params: RequestParams = {},
     ) =>
-      this.request<
-        PvlcMedFormulasAddToCartCreateData,
-        PvlcMedFormulasAddToCartCreateError
-      >({
-        path: `/api/pvlc-med-formulas/${id}/add-to-cart`,
-        method: "POST",
-        secure: true,
+      this.http.request<DsPvlcMedFormulaResponse, Record<string, string>>({
+        path: `/api/pvlc-med-formulas/${id}`,
+        method: "GET",
         format: "json",
         ...params,
       }),
@@ -1263,7 +1413,7 @@ export class Api<
      * @summary Загрузка изображения для формулы
      * @request POST:/api/pvlc-med-formulas/{id}/image
      * @secure
-     * @response `200` `PvlcMedFormulasImageCreateData` OK
+     * @response `200` `Record<string,string>` OK
      * @response `400` `Record<string,string>` Bad Request
      * @response `403` `Record<string,string>` Forbidden
      * @response `404` `Record<string,string>` Not Found
@@ -1273,15 +1423,61 @@ export class Api<
       data: PvlcMedFormulasImageCreatePayload,
       params: RequestParams = {},
     ) =>
-      this.request<
-        PvlcMedFormulasImageCreateData,
-        PvlcMedFormulasImageCreateError
-      >({
+      this.http.request<Record<string, string>, Record<string, string>>({
         path: `/api/pvlc-med-formulas/${id}/image`,
         method: "POST",
         body: data,
         secure: true,
         type: ContentType.FormData,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Возвращает список формул с возможностью фильтрации
+     *
+     * @tags med_formulas
+     * @name PvlcMedFormulasList
+     * @summary Получение списка формул
+     * @request GET:/api/pvlc-med-formulas
+     * @response `200` `(DsPvlcMedFormulaResponse)[]` OK
+     */
+    pvlcMedFormulasList: (
+      query: PvlcMedFormulasListParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<DsPvlcMedFormulaResponse[], any>({
+        path: `/api/pvlc-med-formulas`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Обновляет существующую формулу ДЖЕЛ (только для модераторов)
+     *
+     * @tags med_formulas
+     * @name PvlcMedFormulasUpdate
+     * @summary Обновление формулы
+     * @request PUT:/api/pvlc-med-formulas/{id}
+     * @secure
+     * @response `200` `Record<string,string>` OK
+     * @response `400` `Record<string,string>` Bad Request
+     * @response `403` `Record<string,string>` Forbidden
+     * @response `404` `Record<string,string>` Not Found
+     */
+    pvlcMedFormulasUpdate: (
+      { id, ...query }: PvlcMedFormulasUpdateParams,
+      request: DsUpdatePvlcMedFormulaRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<Record<string, string>, Record<string, string>>({
+        path: `/api/pvlc-med-formulas/${id}`,
+        method: "PUT",
+        body: request,
+        secure: true,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),
