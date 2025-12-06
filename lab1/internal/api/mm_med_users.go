@@ -11,6 +11,21 @@ import (
 // Домен: М-М расчеты (MedMmPvlcCalculations)
 
 // DELETE /api/med-mm-pvlc-calculations - удаление из заявки
+
+// DeleteMedMmPvlcCalculation godoc
+// @Summary Удаление расчета из заявки
+// @Description Удаляет связь формулы с заявкой (только для владельца черновика)
+// @Tags med_calculations
+// @Accept json
+// @Produce json
+// @Param request body ds.DeleteMedMmPvlcCalculationRequest true "Данные для удаления"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/med-mm-pvlc-calculations [delete]
+// @Security BearerAuth
 func (a *API) DeleteMedMmPvlcCalculation(c *gin.Context) {
 	var request struct {
 		CardID           uint `json:"card_id" binding:"required"`
@@ -38,6 +53,21 @@ func (a *API) DeleteMedMmPvlcCalculation(c *gin.Context) {
 }
 
 // PUT /api/med-mm-pvlc-calculations - изменение м-м
+
+// UpdateMedMmPvlcCalculation godoc
+// @Summary Обновление расчета в заявке
+// @Description Обновляет данные расчета в заявке (ввод роста)
+// @Tags med_calculations
+// @Accept json
+// @Produce json
+// @Param request body ds.UpdateMedMmPvlcCalculationAPIRequest true "Данные для обновления"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/med-mm-pvlc-calculations [put]
+// @Security BearerAuth
 func (a *API) UpdateMedMmPvlcCalculation(c *gin.Context) {
 	var request ds.UpdateMedMmPvlcCalculationAPIRequest // ИСПОЛЬЗУЕМ НОВУЮ СТРУКТУРУ
 
@@ -65,9 +95,11 @@ func (a *API) UpdateMedMmPvlcCalculation(c *gin.Context) {
 
 // Домен: Пользователи (MedUsers)
 
+// POST /api/med-users/register - регистрация
+
 // RegisterMedUser godoc
 // @Summary Регистрация нового пользователя
-// @Description Создает нового пользователя в системе (только для модераторов)
+// @Description Создает нового пользователя в системе
 // @Tags med_users
 // @Accept json
 // @Produce json
@@ -78,7 +110,6 @@ func (a *API) UpdateMedMmPvlcCalculation(c *gin.Context) {
 // @Failure 500 {object} map[string]string
 // @Router /api/med-users/register [post]
 // @Security BearerAuth
-// POST /api/med-users/register - регистрация
 func (a *API) RegisterMedUser(c *gin.Context) {
 	var request ds.MedUserRegistrationRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -112,6 +143,15 @@ func (a *API) RegisterMedUser(c *gin.Context) {
 }
 
 // GET /api/med-users/profile - профиль пользователя
+
+// GetMedUserProfile godoc
+// @Summary Получение профиля пользователя (старый endpoint)
+// @Description Возвращает информацию о пользователе по ID (для демонстрации)
+// @Tags med_users
+// @Produce json
+// @Success 200 {object} ds.MedUserResponse
+// @Failure 404 {object} map[string]string
+// @Router /api/med-users/profile [get]
 func (a *API) GetMedUserProfile(c *gin.Context) {
 	// Фиксированный пользователь для демонстрации
 	userID := uint(1)
@@ -132,6 +172,19 @@ func (a *API) GetMedUserProfile(c *gin.Context) {
 }
 
 // PUT /api/med-users/profile - обновление профиля
+
+// UpdateMedUserProfile godoc
+// @Summary Обновление профиля пользователя
+// @Description Обновляет данные профиля пользователя
+// @Tags med_users
+// @Accept json
+// @Produce json
+// @Param request body ds.UpdateMedUserRequest true "Данные для обновления"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/med-users/profile [put]
 func (a *API) UpdateMedUserProfile(c *gin.Context) {
 	// Фиксированный пользователь для демонстрации
 	userID := uint(1)
@@ -162,6 +215,18 @@ func (a *API) UpdateMedUserProfile(c *gin.Context) {
 }
 
 // POST /api/med-users/login - аутентификация
+
+// LoginMedUser godoc
+// @Summary Аутентификация пользователя (старый endpoint)
+// @Description Выполняет вход пользователя
+// @Tags med_users
+// @Accept json
+// @Produce json
+// @Param request body ds.LoginMedUserRequest true "Данные для входа"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Router /api/med-users/login [post]
 func (a *API) LoginMedUser(c *gin.Context) {
 	var request struct {
 		Login    string `json:"login" binding:"required"`
@@ -191,6 +256,14 @@ func (a *API) LoginMedUser(c *gin.Context) {
 }
 
 // POST /api/med-users/logout - деавторизация
+
+// LogoutMedUser godoc
+// @Summary Выход пользователя (старый endpoint)
+// @Description Завершает сессию пользователя
+// @Tags med_users
+// @Produce json
+// @Success 200 {object} map[string]string
+// @Router /api/med-users/logout [post]
 func (a *API) LogoutMedUser(c *gin.Context) {
 	// В реальном приложении здесь инвалидируем токен
 	a.successResponse(c, gin.H{"message": "Успешный выход из системы"})

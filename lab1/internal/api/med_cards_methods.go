@@ -16,12 +16,11 @@ import (
 
 // GetCartIcon godoc
 // @Summary Получение иконки корзины
-// @Description Возвращает информацию о корзине пользователя (количество items)
+// @Description Возвращает информацию о корзине пользователя (количество items). Для неавторизованных возвращает пустую корзину.
 // @Tags med_card
 // @Produce json
 // @Success 200 {object} ds.CartIconResponse
-// @Failure 401 {object} map[string]string
-// @Router /api/med_card/icon [get]// @Security BearerAuth
+// @Router /api/med_card/icon [get]
 func (a *API) GetCartIcon(c *gin.Context) {
 	// Изменяем логику: если пользователь не авторизован, возвращаем пустую корзину
 	claims := auth.GetUserFromContext(c)

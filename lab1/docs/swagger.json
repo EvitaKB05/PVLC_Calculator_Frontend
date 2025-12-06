@@ -77,9 +77,6 @@
                     }
                 ],
                 "description": "Добавляет JWT токен в черный список",
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
@@ -87,17 +84,6 @@
                     "med_auth"
                 ],
                 "summary": "Выход пользователя",
-                "parameters": [
-                    {
-                        "description": "Токен для выхода",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.LogoutRequest"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -110,6 +96,15 @@
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -154,6 +149,327 @@
                 }
             }
         },
+        "/api/med-mm-pvlc-calculations": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Обновляет данные расчета в заявке (ввод роста)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "med_calculations"
+                ],
+                "summary": "Обновление расчета в заявке",
+                "parameters": [
+                    {
+                        "description": "Данные для обновления",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.UpdateMedMmPvlcCalculationAPIRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Удаляет связь формулы с заявкой (только для владельца черновика)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "med_calculations"
+                ],
+                "summary": "Удаление расчета из заявки",
+                "parameters": [
+                    {
+                        "description": "Данные для удаления",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.DeleteMedMmPvlcCalculationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/med-users/login": {
+            "post": {
+                "description": "Выполняет вход пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "med_users"
+                ],
+                "summary": "Аутентификация пользователя (старый endpoint)",
+                "parameters": [
+                    {
+                        "description": "Данные для входа",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.LoginMedUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/med-users/logout": {
+            "post": {
+                "description": "Завершает сессию пользователя",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "med_users"
+                ],
+                "summary": "Выход пользователя (старый endpoint)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/med-users/profile": {
+            "get": {
+                "description": "Возвращает информацию о пользователе по ID (для демонстрации)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "med_users"
+                ],
+                "summary": "Получение профиля пользователя (старый endpoint)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ds.MedUserResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Обновляет данные профиля пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "med_users"
+                ],
+                "summary": "Обновление профиля пользователя",
+                "parameters": [
+                    {
+                        "description": "Данные для обновления",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.UpdateMedUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/med-users/register": {
             "post": {
                 "security": [
@@ -161,7 +477,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Создает нового пользователя в системе (только для модераторов)",
+                "description": "Создает нового пользователя в системе",
                 "consumes": [
                     "application/json"
                 ],
@@ -223,7 +539,7 @@
         },
         "/api/med_card/icon": {
             "get": {
-                "description": "Возвращает информацию о корзине пользователя (количество items)",
+                "description": "Возвращает информацию о корзине пользователя (количество items). Для неавторизованных возвращает пустую корзину.",
                 "produces": [
                     "application/json"
                 ],
@@ -236,15 +552,6 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/ds.CartIconResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
                         }
                     }
                 }
@@ -1121,17 +1428,6 @@
                 }
             }
         },
-        "api.LogoutRequest": {
-            "type": "object",
-            "required": [
-                "token"
-            ],
-            "properties": {
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
         "ds.CartIconResponse": {
             "type": "object",
             "properties": {
@@ -1185,6 +1481,36 @@
                     "type": "integer"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "ds.DeleteMedMmPvlcCalculationRequest": {
+            "type": "object",
+            "required": [
+                "card_id",
+                "pvlc_med_formula_id"
+            ],
+            "properties": {
+                "card_id": {
+                    "type": "integer"
+                },
+                "pvlc_med_formula_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "ds.LoginMedUserRequest": {
+            "type": "object",
+            "required": [
+                "login",
+                "password"
+            ],
+            "properties": {
+                "login": {
+                    "type": "string"
+                },
+                "password": {
                     "type": "string"
                 }
             }
@@ -1313,6 +1639,44 @@
                     "type": "integer"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "ds.UpdateMedMmPvlcCalculationAPIRequest": {
+            "type": "object",
+            "required": [
+                "card_id",
+                "data",
+                "pvlc_med_formula_id"
+            ],
+            "properties": {
+                "card_id": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/ds.UpdateMedMmPvlcCalculationRequest"
+                },
+                "pvlc_med_formula_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "ds.UpdateMedMmPvlcCalculationRequest": {
+            "type": "object",
+            "required": [
+                "input_height"
+            ],
+            "properties": {
+                "input_height": {
+                    "type": "number"
+                }
+            }
+        },
+        "ds.UpdateMedUserRequest": {
+            "type": "object",
+            "properties": {
+                "password": {
                     "type": "string"
                 }
             }

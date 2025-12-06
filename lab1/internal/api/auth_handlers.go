@@ -91,11 +91,10 @@ func (a *API) Login(c *gin.Context) {
 // @Summary Выход пользователя
 // @Description Добавляет JWT токен в черный список
 // @Tags med_auth
-// @Accept json
 // @Produce json
-// @Param request body LogoutRequest true "Токен для выхода"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
 // @Router /api/auth/logout [post]
 // @Security BearerAuth
 func (a *API) Logout(c *gin.Context) {

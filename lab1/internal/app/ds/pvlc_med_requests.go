@@ -43,12 +43,17 @@ type UpdateMedMmPvlcCalculationRequest struct {
 
 // ДОБАВЛЕНО: структура для API запроса обновления расчета
 type UpdateMedMmPvlcCalculationAPIRequest struct {
-	CardID           uint                              `json:"med_card_id" binding:"required"`
+	CardID           uint                              `json:"card_id" binding:"required"`
 	PvlcMedFormulaID uint                              `json:"pvlc_med_formula_id" binding:"required"`
 	Data             UpdateMedMmPvlcCalculationRequest `json:"data" binding:"required"`
 }
 
-// УДАЛЕНО дублирующиеся объявления - оставляем только одни
+// ДОБАВЛЕНО: структура для API запроса удаления расчета
+type DeleteMedMmPvlcCalculationRequest struct {
+	CardID           uint `json:"card_id" binding:"required"`
+	PvlcMedFormulaID uint `json:"pvlc_med_formula_id" binding:"required"`
+}
+
 type MedUserRegistrationRequest struct {
 	Login       string `json:"login" binding:"required"`
 	Password    string `json:"password" binding:"required"`
@@ -59,7 +64,11 @@ type UpdateMedUserRequest struct {
 	Password string `json:"password"`
 }
 
-// ДОБАВЛЕНО ДЛЯ ИСПРАВЛЕНИЯ ОШИБОК SWAGGER
+// ДОБАВЛЕНО: структура для API запроса входа (старый endpoint)
+type LoginMedUserRequest struct {
+	Login    string `json:"login" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
 
 // UpdatePvlcMedCardRequest - запрос на обновление заявки
 type UpdatePvlcMedCardRequest struct {
@@ -70,4 +79,14 @@ type UpdatePvlcMedCardRequest struct {
 // CompletePvlcMedCardRequest - запрос на завершение заявки
 type CompletePvlcMedCardRequest struct {
 	Action string `json:"action" binding:"required"` // "complete" или "reject"
+}
+
+// ДОБАВЛЕНО: структура для API запроса выхода (старый endpoint)
+type LogoutMedUserRequest struct {
+	// Пустая структура, так как запрос не требует тела
+}
+
+// ДОБАВЛЕНО: структура для проверки существования заявки
+type CheckPvlcMedCardExistsRequest struct {
+	CardID uint `json:"card_id" binding:"required"`
 }
