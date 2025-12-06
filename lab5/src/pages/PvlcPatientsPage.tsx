@@ -1,21 +1,19 @@
-//src/pages/PvlcPatientsPage.tsx
 import React, { useState, useEffect, useRef } from 'react'
 import { Container, Alert, Spinner, Form } from 'react-bootstrap'
-import { useSearchParams } from 'react-router-dom'
-import type { PvlcMedFormula, CartIconResponse } from '../types'
+import { useSearchParams, Link } from 'react-router-dom'
+import type { PvlcMedFormula } from '../types'
 import { apiService } from '../services/api'
 import { useAppDispatch, useAppSelector } from '../hooks/redux'
 import { setSearchTerm, resetFilters } from '../store/slices/filterSlice'
+import { getCartIcon } from '../store/slices/cartSlice'
 import Breadcrumbs from '../components/Breadcrumbs'
 import FormulaCard from '../components/FormulaCard'
-// import FilterPanel from '../components/FilterPanel' // КОММЕНТИРУЕМ ИМПОРТ
 
 const PvlcPatientsPage: React.FC = () => {
 	const dispatch = useAppDispatch()
 
 	// Получаем состояние фильтров из Redux
 	const searchTerm = useAppSelector(state => state.filters.searchTerm)
-	//const filter = useAppSelector(state => state.filters.filter)
 
 	const [searchParams, setSearchParams] = useSearchParams()
 	const [formulas, setFormulas] = useState<PvlcMedFormula[]>([])
@@ -23,14 +21,11 @@ const PvlcPatientsPage: React.FC = () => {
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 	const [inputValue, setInputValue] = useState('')
-	//const [categories, setCategories] = useState<string[]>([])
-	//const [genders, setGenders] = useState<string[]>([])
 	const searchInputRef = useRef<HTMLInputElement>(null)
 
-	const [cartData, setCartData] = useState<CartIconResponse>({
-		med_card_id: 0,
-		med_item_count: 0,
-	})
+	// Получаем состояние корзины и аутентификации из Redux
+	const { medCardId, medItemCount } = useAppSelector(state => state.cart)
+	const { isAuthenticated } = useAppSelector(state => state.auth)
 
 	// Загружаем формулы при первом рендере
 	useEffect(() => {
@@ -61,8 +56,8 @@ const PvlcPatientsPage: React.FC = () => {
 
 	const loadCartIcon = async () => {
 		try {
-			const data = await apiService.getCartIcon()
-			setCartData(data)
+			// Используем Redux для загрузки иконки корзины
+			await dispatch(getCartIcon())
 		} catch (error) {
 			console.error('Error loading cart icon:', error)
 		}
@@ -190,19 +185,18 @@ const PvlcPatientsPage: React.FC = () => {
 					</section>
 				)}
 
-				{/* Иконка корзины */}
-				{cartData.med_item_count > 0 ? (
-					<a
-						href={`/pvlc_med_calc/${cartData.med_card_id}`}
+				{/* Иконка корзины - ОБНОВЛЕНА ДЛЯ REDUX */}
+				{medCardId && medItemCount > 0 && isAuthenticated ? (
+					<Link
+						to={`/pvlc_med_card/${medCardId}`}
 						className='folder-icon'
+						title='Перейти к заявке'
 					>
 						<img src='./folder.png' alt='Корзина' width='100' height='70' />
-						<span className='notification-badge'>
-							{cartData.med_item_count}
-						</span>
-					</a>
+						<span className='notification-badge'>{medItemCount}</span>
+					</Link>
 				) : (
-					<div className='folder-icon inactive'>
+					<div className='folder-icon inactive' title='Корзина пуста'>
 						<img src='./folder.png' alt='Корзина' width='100' height='70' />
 					</div>
 				)}

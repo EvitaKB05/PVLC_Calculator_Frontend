@@ -1,10 +1,25 @@
-//src/components/Navbar.tsx
 import React from 'react'
-import { Navbar, Nav, Container } from 'react-bootstrap'
-import { Link, useLocation } from 'react-router-dom'
+import { Navbar, Nav, Container, Button } from 'react-bootstrap'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAppDispatch, useAppSelector } from '../hooks/redux'
+import { logoutUser } from '../store/slices/authSlice'
+import { resetCart } from '../store/slices/cartSlice'
+import { resetFilters } from '../store/slices/filterSlice'
 
 const CustomNavbar: React.FC = () => {
 	const location = useLocation()
+	const navigate = useNavigate()
+	const dispatch = useAppDispatch()
+
+	// Получаем состояние из Redux
+	const { isAuthenticated, user } = useAppSelector(state => state.auth)
+
+	const handleLogout = async () => {
+		await dispatch(logoutUser())
+		dispatch(resetCart())
+		dispatch(resetFilters())
+		navigate('/pvlc_home_page')
+	}
 
 	return (
 		<Navbar bg='light' expand='lg' className='mb-4'>
@@ -28,17 +43,49 @@ const CustomNavbar: React.FC = () => {
 						<Nav.Link as={Link} to='/pvlc_patients'>
 							Категории пациентов
 						</Nav.Link>
+
+						{/* Показываем только авторизованным пользователям */}
+						{isAuthenticated && (
+							<>
+								<Nav.Link as={Link} to='/pvlc_med_cards'>
+									Мои заявки
+								</Nav.Link>
+							</>
+						)}
 					</Nav>
 					<Nav>
-						{/*<Nav.Link
-							href='http://localhost:8080/swagger/index.html'
-							target='_blank'
-						>
-							API Docs
-						</Nav.Link>
-						<Nav.Link href='http://localhost:8081' target='_blank'>
-							Adminer
-						</Nav.Link>*/}
+						{isAuthenticated ? (
+							<>
+								{/* Имя пользователя */}
+								<Navbar.Text className='me-3'>
+									Привет, <strong>{user?.login}</strong>!
+								</Navbar.Text>
+
+								{/* Кнопка профиля */}
+								<Nav.Link as={Link} to='/pvlc_profile' className='me-2'>
+									Профиль
+								</Nav.Link>
+
+								{/* Кнопка выхода */}
+								<Button
+									variant='outline-danger'
+									size='sm'
+									onClick={handleLogout}
+								>
+									Выйти
+								</Button>
+							</>
+						) : (
+							<>
+								{/* Кнопки для гостя */}
+								<Nav.Link as={Link} to='/pvlc_login' className='me-2'>
+									Вход
+								</Nav.Link>
+								<Nav.Link as={Link} to='/pvlc_register'>
+									Регистрация
+								</Nav.Link>
+							</>
+						)}
 					</Nav>
 				</Navbar.Collapse>
 			</Container>

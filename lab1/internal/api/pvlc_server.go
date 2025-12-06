@@ -70,10 +70,19 @@ func StartServer() {
 	r := gin.Default()
 	// ДОБАВИТЬ: настройка CORS
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:8080"}, // Разрешенные домены
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
+		AllowOrigins: []string{
+			"http://localhost:3000",
+			"https://localhost:3000",
+			"http://192.168.1.14:3000",
+			"https://192.168.1.14:3000",
+			"http://localhost:5173", // Vite dev server по умолчанию
+			"https://localhost:5173",
+			"http://127.0.0.1:3000",
+			"https://127.0.0.1:3000",
+		},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
+		ExposeHeaders:    []string{"Content-Length", "Content-Type", "Authorization"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
