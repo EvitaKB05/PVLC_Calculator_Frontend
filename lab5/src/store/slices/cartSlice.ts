@@ -1,6 +1,7 @@
-//src/slices/cartSlice.ts
+// src/store/slices/cartSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { api } from '../../api'
+import type { DsCartIconResponse } from '../../api' // ИСПРАВЛЕНО: Используем тип из API
 
 // Интерфейс состояния корзины
 interface CartState {
@@ -33,7 +34,9 @@ export const getCartIcon = createAsyncThunk(
 	async (_, { rejectWithValue }) => {
 		try {
 			const response = await api.api.medCardIconList()
-			return response
+			// ИСПРАВЛЕНО: API возвращает { data: DsCartIconResponse }
+			const apiResponse = response as { data: DsCartIconResponse }
+			return apiResponse.data
 		} catch (error: unknown) {
 			const apiError = error as ApiError
 			return rejectWithValue(
@@ -46,29 +49,30 @@ export const getCartIcon = createAsyncThunk(
 )
 
 // Асинхронное действие для добавления формулы в корзину
-// Асинхронное действие для добавления формулы в корзину
 export const addToCart = createAsyncThunk(
 	'cart/addToCart',
-	async (formulaId: number, { rejectWithValue }) => {
+	async (formulaId: number, { rejectWithValue, dispatch }) => {
 		try {
-			console.log('Adding to cart, formulaId:', formulaId) // Логирование
-
-			// Проверяем токен
+			console.log('Adding to cart, formulaId:', formulaId)
 			const token = localStorage.getItem('token')
-			console.log('Token exists:', !!token) // Логирование
+			console.log('Token exists:', !!token)
 
 			const response = await api.api.pvlcMedFormulasAddToCartCreate({
 				id: formulaId,
 			})
-			console.log('Add to cart response:', response) // Логирование
-			return { formulaId, response }
+			console.log('Add to cart response:', response)
+
+			// ИСПРАВЛЕНО: После успешного добавления обновляем иконку корзины
+			await dispatch(getCartIcon())
+
+			return { formulaId }
 		} catch (error: unknown) {
 			const apiError = error as ApiError
 			console.error(
 				'Add to cart error:',
 				apiError.response?.data,
 				apiError.response?.status
-			) // Логирование
+			)
 			return rejectWithValue(
 				typeof apiError.response?.data === 'string'
 					? apiError.response.data
@@ -105,6 +109,10 @@ const cartSlice = createSlice({
 				state.medCardId = action.payload.med_card_id || null
 				state.medItemCount = action.payload.med_item_count || 0
 				state.error = null
+				console.log('Cart icon updated:', {
+					medCardId: state.medCardId,
+					medItemCount: state.medItemCount,
+				})
 			})
 			.addCase(getCartIcon.rejected, (state, action) => {
 				state.loading = false
@@ -119,8 +127,8 @@ const cartSlice = createSlice({
 			.addCase(addToCart.fulfilled, state => {
 				state.loading = false
 				state.error = null
-				// После добавления обновляем счетчик
-				state.medItemCount += 1
+				// ИСПРАВЛЕНО: Счетчик уже обновлен через getCartIcon
+				console.log('Add to cart successful')
 			})
 			.addCase(addToCart.rejected, (state, action) => {
 				state.loading = false

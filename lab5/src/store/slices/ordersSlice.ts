@@ -1,4 +1,4 @@
-//src/slices/ordersSlice.ts
+// src/store/slices/ordersSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import {
@@ -24,6 +24,11 @@ interface ApiError {
 	message?: string
 }
 
+// Тип для обернутого ответа API
+interface ApiWrappedResponse<T> {
+	data?: T
+}
+
 // Тип для параметров списка заявок
 interface OrdersListParams {
 	date_from?: string
@@ -45,7 +50,22 @@ export const getOrdersList = createAsyncThunk(
 	async (params: OrdersListParams = {}, { rejectWithValue }) => {
 		try {
 			const response = await api.api.pvlcMedCardsList(params)
-			return response
+
+			// ИСПРАВЛЕНО: API возвращает { data: DsPvlcMedCardResponse[] }
+			const apiResponse = response as ApiWrappedResponse<
+				DsPvlcMedCardResponse[]
+			>
+
+			if (apiResponse.data) {
+				return apiResponse.data
+			}
+
+			// ИЛИ: возвращает массив напрямую (проверяем оба варианта)
+			if (Array.isArray(response)) {
+				return response as DsPvlcMedCardResponse[]
+			}
+
+			throw new Error('Invalid response format')
 		} catch (error: unknown) {
 			const apiError = error as ApiError
 			return rejectWithValue(
@@ -63,7 +83,19 @@ export const getOrderDetail = createAsyncThunk(
 	async (id: number, { rejectWithValue }) => {
 		try {
 			const response = await api.api.pvlcMedCardsDetail({ id })
-			return response
+			// ИСПРАВЛЕНО: API возвращает { data: DsPvlcMedCardResponse }
+			const apiResponse = response as ApiWrappedResponse<DsPvlcMedCardResponse>
+
+			if (apiResponse.data) {
+				return apiResponse.data
+			}
+
+			// ИЛИ: возвращает объект напрямую
+			if (response && typeof response === 'object' && 'id' in response) {
+				return response as DsPvlcMedCardResponse
+			}
+
+			throw new Error('Invalid response format')
 		} catch (error: unknown) {
 			const apiError = error as ApiError
 			return rejectWithValue(
@@ -159,6 +191,7 @@ const ordersSlice = createSlice({
 					state.loading = false
 					state.orders = action.payload
 					state.error = null
+					console.log('Orders list loaded:', action.payload.length, 'items')
 				}
 			)
 			.addCase(getOrdersList.rejected, (state, action) => {

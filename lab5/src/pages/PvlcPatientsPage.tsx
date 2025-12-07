@@ -23,7 +23,6 @@ const PvlcPatientsPage: React.FC = () => {
 	const [error, setError] = useState<string | null>(null)
 	const [inputValue, setInputValue] = useState('')
 	const searchInputRef = useRef<HTMLInputElement>(null)
-
 	// Получаем состояние корзины и аутентификации из Redux
 	const { medCardId, medItemCount } = useAppSelector(state => state.cart)
 	const { isAuthenticated } = useAppSelector(state => state.auth)
@@ -58,11 +57,19 @@ const PvlcPatientsPage: React.FC = () => {
 	const loadCartIcon = async () => {
 		try {
 			// Используем Redux для загрузки иконки корзины
-			await dispatch(getCartIcon())
+			await dispatch(getCartIcon()).unwrap()
 		} catch (error) {
 			console.error('Error loading cart icon:', error)
+			// ДЛЯ ГОСТЕЙ: устанавливаем пустую корзину
+			if (!isAuthenticated) {
+				// Ничего не делаем - состояние уже инициализировано
+			}
 		}
 	}
+	// ИСПРАВЛЕНО: Добавляем эффект для обновления корзины при изменении аутентификации
+	useEffect(() => {
+		loadCartIcon()
+	}, [isAuthenticated])
 
 	const loadFormulas = async () => {
 		try {
@@ -187,7 +194,8 @@ const PvlcPatientsPage: React.FC = () => {
 				)}
 
 				{/* Иконка корзины - ОБНОВЛЕНА ДЛЯ REDUX */}
-				{medCardId && medItemCount > 0 && isAuthenticated ? (
+				{/* ИСПРАВЛЕНО: Проверяем и medCardId и medItemCount */}
+				{isAuthenticated && medCardId && medItemCount > 0 ? (
 					<Link
 						to={`/pvlc_med_card/${medCardId}`}
 						className='folder-icon'
@@ -197,8 +205,15 @@ const PvlcPatientsPage: React.FC = () => {
 						<span className='notification-badge'>{medItemCount}</span>
 					</Link>
 				) : (
-					<div className='folder-icon inactive' title='Корзина пуста'>
+					<div
+						className={`folder-icon ${isAuthenticated ? 'inactive' : ''}`}
+						title={isAuthenticated ? 'Корзина пуста' : 'Войдите для добавления'}
+					>
 						<img src='./folder.png' alt='Корзина' width='100' height='70' />
+						{/* ИСПРАВЛЕНО: Показываем 0 для авторизованных */}
+						{isAuthenticated && medItemCount === 0 && (
+							<span className='notification-badge'>0</span>
+						)}
 					</div>
 				)}
 			</Container>
