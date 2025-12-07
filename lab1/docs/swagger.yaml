@@ -466,7 +466,7 @@ paths:
       - med_users
   /api/med-users/profile:
     get:
-      description: Возвращает информацию о пользователе по ID (для демонстрации)
+      description: Возвращает информацию о текущем пользователе
       produces:
       - application/json
       responses:
@@ -474,19 +474,27 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/ds.MedUserResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
           description: Not Found
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Получение профиля пользователя (старый endpoint)
+      security:
+      - BearerAuth: []
+      summary: Получение профиля пользователя
       tags:
       - med_users
     put:
       consumes:
       - application/json
-      description: Обновляет данные профиля пользователя
+      description: Обновляет пароль текущего пользователя
       parameters:
       - description: Данные для обновления
         in: body
@@ -509,6 +517,12 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
           description: Not Found
           schema:
@@ -521,6 +535,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Обновление профиля пользователя
       tags:
       - med_users

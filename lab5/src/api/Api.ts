@@ -356,12 +356,14 @@ export namespace Api {
   }
 
   /**
-   * @description Возвращает информацию о пользователе по ID (для демонстрации)
+   * @description Возвращает информацию о текущем пользователе
    * @tags med_users
    * @name MedUsersProfileList
-   * @summary Получение профиля пользователя (старый endpoint)
+   * @summary Получение профиля пользователя
    * @request GET:/api/med-users/profile
+   * @secure
    * @response `200` `DsMedUserResponse` OK
+   * @response `401` `Record<string,string>` Unauthorized
    * @response `404` `Record<string,string>` Not Found
    */
   export namespace MedUsersProfileList {
@@ -373,13 +375,15 @@ export namespace Api {
   }
 
   /**
-   * @description Обновляет данные профиля пользователя
+   * @description Обновляет пароль текущего пользователя
    * @tags med_users
    * @name MedUsersProfileUpdate
    * @summary Обновление профиля пользователя
    * @request PUT:/api/med-users/profile
+   * @secure
    * @response `200` `Record<string,string>` OK
    * @response `400` `Record<string,string>` Bad Request
+   * @response `401` `Record<string,string>` Unauthorized
    * @response `404` `Record<string,string>` Not Found
    * @response `500` `Record<string,string>` Internal Server Error
    */
@@ -1083,32 +1087,37 @@ export class Api<SecurityDataType extends unknown> {
       }),
 
     /**
-     * @description Возвращает информацию о пользователе по ID (для демонстрации)
+     * @description Возвращает информацию о текущем пользователе
      *
      * @tags med_users
      * @name MedUsersProfileList
-     * @summary Получение профиля пользователя (старый endpoint)
+     * @summary Получение профиля пользователя
      * @request GET:/api/med-users/profile
+     * @secure
      * @response `200` `DsMedUserResponse` OK
+     * @response `401` `Record<string,string>` Unauthorized
      * @response `404` `Record<string,string>` Not Found
      */
     medUsersProfileList: (params: RequestParams = {}) =>
       this.http.request<DsMedUserResponse, Record<string, string>>({
         path: `/api/med-users/profile`,
         method: "GET",
+        secure: true,
         format: "json",
         ...params,
       }),
 
     /**
-     * @description Обновляет данные профиля пользователя
+     * @description Обновляет пароль текущего пользователя
      *
      * @tags med_users
      * @name MedUsersProfileUpdate
      * @summary Обновление профиля пользователя
      * @request PUT:/api/med-users/profile
+     * @secure
      * @response `200` `Record<string,string>` OK
      * @response `400` `Record<string,string>` Bad Request
+     * @response `401` `Record<string,string>` Unauthorized
      * @response `404` `Record<string,string>` Not Found
      * @response `500` `Record<string,string>` Internal Server Error
      */
@@ -1120,6 +1129,7 @@ export class Api<SecurityDataType extends unknown> {
         path: `/api/med-users/profile`,
         method: "PUT",
         body: request,
+        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,

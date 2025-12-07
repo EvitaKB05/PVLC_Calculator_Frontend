@@ -2,6 +2,7 @@ package api
 
 import (
 	"lab1/internal/app/ds"
+	"lab1/internal/auth"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -143,20 +144,25 @@ func (a *API) RegisterMedUser(c *gin.Context) {
 }
 
 // GET /api/med-users/profile - профиль пользователя
-
 // GetMedUserProfile godoc
-// @Summary Получение профиля пользователя (старый endpoint)
-// @Description Возвращает информацию о пользователе по ID (для демонстрации)
+// @Summary Получение профиля пользователя
+// @Description Возвращает информацию о текущем пользователе
 // @Tags med_users
 // @Produce json
 // @Success 200 {object} ds.MedUserResponse
+// @Failure 401 {object} map[string]string
 // @Failure 404 {object} map[string]string
 // @Router /api/med-users/profile [get]
+// @Security BearerAuth
 func (a *API) GetMedUserProfile(c *gin.Context) {
-	// Фиксированный пользователь для демонстрации
-	userID := uint(1)
+	// Получаем пользователя из контекста аутентификации
+	claims := auth.GetUserFromContext(c)
+	if claims == nil {
+		a.errorResponse(c, http.StatusUnauthorized, "Требуется аутентификация")
+		return
+	}
 
-	user, err := a.repo.GetMedUserByID(userID)
+	user, err := a.repo.GetMedUserByID(claims.UserID)
 	if err != nil {
 		a.errorResponse(c, http.StatusNotFound, "Пользователь не найден")
 		return
@@ -173,21 +179,28 @@ func (a *API) GetMedUserProfile(c *gin.Context) {
 
 // PUT /api/med-users/profile - обновление профиля
 
+// PUT /api/med-users/profile - обновление профиля
 // UpdateMedUserProfile godoc
 // @Summary Обновление профиля пользователя
-// @Description Обновляет данные профиля пользователя
+// @Description Обновляет пароль текущего пользователя
 // @Tags med_users
 // @Accept json
 // @Produce json
 // @Param request body ds.UpdateMedUserRequest true "Данные для обновления"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/med-users/profile [put]
+// @Security BearerAuth
 func (a *API) UpdateMedUserProfile(c *gin.Context) {
-	// Фиксированный пользователь для демонстрации
-	userID := uint(1)
+	// Получаем пользователя из контекста аутентификации
+	claims := auth.GetUserFromContext(c)
+	if claims == nil {
+		a.errorResponse(c, http.StatusUnauthorized, "Требуется аутентификация")
+		return
+	}
 
 	var request ds.UpdateMedUserRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -195,7 +208,7 @@ func (a *API) UpdateMedUserProfile(c *gin.Context) {
 		return
 	}
 
-	user, err := a.repo.GetMedUserByID(userID)
+	user, err := a.repo.GetMedUserByID(claims.UserID)
 	if err != nil {
 		a.errorResponse(c, http.StatusNotFound, "Пользователь не найден")
 		return

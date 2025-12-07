@@ -184,9 +184,9 @@ const PvlcProfilePage: React.FC = () => {
 								<div className='mb-3'>
 									<strong>Логин:</strong> {user.login}
 								</div>
-								<div className='mb-3'>
+								{/* <div className='mb-3'>
 									<strong>ID:</strong> {user.id}
-								</div>
+								</div> */}
 								<div className='mb-3'>
 									<strong>Роль:</strong>{' '}
 									{user.is_moderator ? 'Модератор' : 'Пользователь'}
@@ -246,9 +246,9 @@ const PvlcProfilePage: React.FC = () => {
 										<Form.Control.Feedback type='invalid'>
 											{errors.newPassword}
 										</Form.Control.Feedback>
-										<Form.Text className='text-muted'>
+										{/* <Form.Text className='text-muted'>
 											Минимум 6 символов
-										</Form.Text>
+										</Form.Text> */}
 									</Form.Group>
 
 									{/* Подтверждение пароля */}

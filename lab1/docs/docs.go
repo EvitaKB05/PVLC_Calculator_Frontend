@@ -387,19 +387,33 @@ const docTemplate = `{
         },
         "/api/med-users/profile": {
             "get": {
-                "description": "Возвращает информацию о пользователе по ID (для демонстрации)",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает информацию о текущем пользователе",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "med_users"
                 ],
-                "summary": "Получение профиля пользователя (старый endpoint)",
+                "summary": "Получение профиля пользователя",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/ds.MedUserResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "404": {
@@ -414,7 +428,12 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Обновляет данные профиля пользователя",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Обновляет пароль текущего пользователя",
                 "consumes": [
                     "application/json"
                 ],
@@ -448,6 +467,15 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
