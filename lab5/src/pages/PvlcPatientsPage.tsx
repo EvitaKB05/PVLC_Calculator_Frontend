@@ -211,9 +211,9 @@ const PvlcPatientsPage: React.FC = () => {
 					>
 						<img src='./folder.png' alt='Корзина' width='100' height='70' />
 						{/* ИСПРАВЛЕНО: Показываем 0 для авторизованных */}
-						{isAuthenticated && medItemCount === 0 && (
-							<span className='notification-badge'>0</span>
-						)}
+						{/*isAuthenticated && medItemCount === 0 && (
+							<span className='notification-badge'></span> 
+						)*/}
 					</div>
 				)}
 			</Container>

@@ -107,9 +107,10 @@ func (a *API) GetPvlcMedCards(c *gin.Context) {
 
 	for _, card := range cards {
 		cardResponse := ds.PvlcMedCardResponse{
-			ID:     card.ID,
-			Status: card.Status,
-			//CreatedAt:   card.CreatedAt,
+			ID:          card.ID,
+			Status:      card.Status,
+			CreatedAt:   card.CreatedAt,
+			UpdatedAt:   card.UpdatedAt,
 			PatientName: card.PatientName,
 			DoctorName:  card.DoctorName,
 			TotalResult: card.TotalResult,
@@ -196,9 +197,10 @@ func (a *API) GetPvlcMedCard(c *gin.Context) {
 	}
 
 	response := ds.PvlcMedCardResponse{
-		ID:     card.ID,
-		Status: card.Status,
-		//CreatedAt:   card.CreatedAt,
+		ID:          card.ID,
+		Status:      card.Status,
+		CreatedAt:   card.CreatedAt,
+		UpdatedAt:   card.UpdatedAt, // ДОБАВИТЬ
 		PatientName: card.PatientName,
 		DoctorName:  card.DoctorName,
 		TotalResult: card.TotalResult,

@@ -27,6 +27,7 @@ type PvlcMedCardResponse struct {
 	ID              uint                           `json:"id"`
 	Status          string                         `json:"status"`
 	CreatedAt       time.Time                      `json:"created_at"`
+	UpdatedAt       time.Time                      `json:"updated_at"` // ДОБАВЛЕНО
 	PatientName     string                         `json:"patient_name"`
 	DoctorName      string                         `json:"doctor_name"`
 	FinalizedAt     *time.Time                     `json:"finalized_at,omitempty"`

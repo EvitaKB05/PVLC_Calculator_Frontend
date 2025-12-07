@@ -138,6 +138,9 @@ definitions:
         type: string
       total_result:
         type: number
+      updated_at:
+        description: ДОБАВЛЕНО
+        type: string
     type: object
   ds.PvlcMedFormulaResponse:
     properties:

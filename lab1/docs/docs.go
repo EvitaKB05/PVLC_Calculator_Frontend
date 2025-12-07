@@ -1611,6 +1611,10 @@ const docTemplate = `{
                 },
                 "total_result": {
                     "type": "number"
+                },
+                "updated_at": {
+                    "description": "ДОБАВЛЕНО",
+                    "type": "string"
                 }
             }
         },

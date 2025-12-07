@@ -1,4 +1,3 @@
-// src/pages/PvlcMedCardsPage.tsx
 import React, { useEffect } from 'react'
 import {
 	Container,
@@ -18,25 +17,21 @@ const PvlcMedCardsPage: React.FC = () => {
 	const dispatch = useAppDispatch()
 	const navigate = useNavigate()
 
-	// Получаем состояние из Redux
 	const { orders, loading, error } = useAppSelector(state => state.orders)
 	const { isAuthenticated } = useAppSelector(state => state.auth)
 
-	// Загружаем список заявок при монтировании
 	useEffect(() => {
 		if (isAuthenticated) {
 			dispatch(getOrdersList({}))
 		}
 	}, [dispatch, isAuthenticated])
 
-	// Если пользователь не авторизован, перенаправляем на вход
 	useEffect(() => {
 		if (!isAuthenticated) {
 			navigate('/pvlc_login')
 		}
 	}, [isAuthenticated, navigate])
 
-	// Функция для получения цвета статуса
 	const getStatusColor = (status: string) => {
 		switch (status) {
 			case 'черновик':
@@ -52,11 +47,13 @@ const PvlcMedCardsPage: React.FC = () => {
 		}
 	}
 
-	// Функция для форматирования даты
 	const formatDate = (dateString?: string) => {
 		if (!dateString) return '—'
 		try {
 			const date = new Date(dateString)
+			if (isNaN(date.getTime())) {
+				return '—'
+			}
 			return date.toLocaleDateString('ru-RU', {
 				day: '2-digit',
 				month: '2-digit',
@@ -69,12 +66,21 @@ const PvlcMedCardsPage: React.FC = () => {
 		}
 	}
 
-	// Функция для получения даты обновления (используем finalized_at если есть, иначе created_at)
-	const getUpdatedDate = (order: DsPvlcMedCardResponse) => {
-		return order.finalized_at || order.completed_at || order.created_at
+	// ИСПРАВЛЕНО: Используем created_at напрямую
+	const getCreatedDate = (order: DsPvlcMedCardResponse) => {
+		return order.created_at
 	}
 
-	// Обработчик клика по заявке
+	// ИСПРАВЛЕНО: Используем updated_at если есть, иначе другие даты
+	const getUpdatedDate = (order: DsPvlcMedCardResponse) => {
+		return (
+			order.updated_at ||
+			order.finalized_at ||
+			order.completed_at ||
+			order.created_at
+		)
+	}
+
 	const handleOrderClick = (id: number) => {
 		navigate(`/pvlc_med_card/${id}`)
 	}
@@ -88,7 +94,6 @@ const PvlcMedCardsPage: React.FC = () => {
 				]}
 			/>
 
-			{/* Синий блок */}
 			<div className='page-header'>
 				<Container>
 					<h1 className='page-title'>Мои заявки</h1>
@@ -142,7 +147,7 @@ const PvlcMedCardsPage: React.FC = () => {
 									<td>
 										{order.total_result ? `${order.total_result} л` : '—'}
 									</td>
-									<td>{formatDate(order.created_at)}</td>
+									<td>{formatDate(getCreatedDate(order))}</td>
 									<td>{formatDate(getUpdatedDate(order))}</td>
 									<td>
 										<Button

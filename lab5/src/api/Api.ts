@@ -83,6 +83,8 @@ export interface DsPvlcMedCardResponse {
   patient_name?: string;
   status?: string;
   total_result?: number;
+  /** ДОБАВЛЕНО */
+  updated_at?: string;
 }
 
 export interface DsPvlcMedFormulaResponse {

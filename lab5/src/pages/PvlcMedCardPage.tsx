@@ -24,6 +24,7 @@ import { deleteCalculation } from '../store/slices/medCalculationsSlice'
 import { getCartIcon } from '../store/slices/cartSlice'
 import Breadcrumbs from '../components/Breadcrumbs'
 import { apiService } from '../services/api'
+//import type { DsPvlcMedCardResponse } from '../api'
 
 // Тип для таймера
 type TimerType = ReturnType<typeof setTimeout>
@@ -226,6 +227,26 @@ const PvlcMedCardPage: React.FC = () => {
 		}
 	}
 
+	// Функция форматирования даты
+	const formatDate = (dateString?: string) => {
+		if (!dateString) return '—'
+		try {
+			const date = new Date(dateString)
+			if (isNaN(date.getTime())) {
+				return '—'
+			}
+			return date.toLocaleDateString('ru-RU', {
+				day: '2-digit',
+				month: '2-digit',
+				year: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit',
+			})
+		} catch {
+			return '—'
+		}
+	}
+
 	const isDraft = currentOrder?.status === 'черновик'
 
 	if (loading) {
@@ -280,23 +301,6 @@ const PvlcMedCardPage: React.FC = () => {
 		return imageUrl ? apiService.getImageUrl(imageUrl) : '/DefaultImage.jpg'
 	}
 
-	// Функция форматирования даты
-	const formatDate = (dateString?: string) => {
-		if (!dateString) return '—'
-		try {
-			const date = new Date(dateString)
-			return date.toLocaleDateString('ru-RU', {
-				day: '2-digit',
-				month: '2-digit',
-				year: 'numeric',
-				hour: '2-digit',
-				minute: '2-digit',
-			})
-		} catch {
-			return '—'
-		}
-	}
-
 	return (
 		<Container fluid className='px-0'>
 			<Breadcrumbs
@@ -323,7 +327,7 @@ const PvlcMedCardPage: React.FC = () => {
 					>
 						<div className='card-body'>
 							<Row className='mb-3'>
-								<Col md={4}>
+								<Col md={3}>
 									<Form.Group>
 										<Form.Label>Статус</Form.Label>
 										<div>
@@ -335,7 +339,7 @@ const PvlcMedCardPage: React.FC = () => {
 										</div>
 									</Form.Group>
 								</Col>
-								<Col md={4}>
+								<Col md={3}>
 									<Form.Group>
 										<Form.Label>Общий результат ДЖЕЛ</Form.Label>
 										<div>
@@ -343,11 +347,26 @@ const PvlcMedCardPage: React.FC = () => {
 										</div>
 									</Form.Group>
 								</Col>
-								<Col md={4}>
+								<Col md={3}>
 									<Form.Group>
 										<Form.Label>Дата создания</Form.Label>
 										<div>
 											<strong>{formatDate(currentOrder.created_at)}</strong>
+										</div>
+									</Form.Group>
+								</Col>
+								<Col md={3}>
+									<Form.Group>
+										<Form.Label>Дата обновления</Form.Label>
+										<div>
+											<strong>
+												{formatDate(
+													currentOrder.updated_at ||
+														currentOrder.finalized_at ||
+														currentOrder.completed_at ||
+														currentOrder.created_at
+												)}
+											</strong>
 										</div>
 									</Form.Group>
 								</Col>
@@ -452,7 +471,10 @@ const PvlcMedCardPage: React.FC = () => {
 																			as='span'
 																			animation='border'
 																			size='sm'
-																			style={{ width: '20px', height: '20px' }}
+																			style={{
+																				width: '20px',
+																				height: '20px',
+																			}}
 																		/>
 																	) : savedHeights[calc.pvlc_med_formula_id] ? (
 																		<span
