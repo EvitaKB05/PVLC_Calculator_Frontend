@@ -1,4 +1,4 @@
-//src/slices/authSlice.ts
+// src/store/slices/authSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import {
@@ -6,7 +6,8 @@ import {
 	type ApiLoginRequest,
 	type DsMedUserResponse,
 	type DsMedUserRegistrationRequest,
-	type ApiLoginResponse, // ДОБАВЛЯЕМ ЭТОТ ИМПОРТ
+	type ApiLoginResponse,
+	type DsUpdateMedUserRequest, // ИСПРАВЛЕНО: добавляем импорт типа
 } from '../../api'
 
 // Интерфейс состояния аутентификации
@@ -15,6 +16,8 @@ interface AuthState {
 	isAuthenticated: boolean
 	loading: boolean
 	error: string | null
+	passwordChanging: boolean // ИСПРАВЛЕНО: добавляем состояние смены пароля
+	passwordChangeError: string | null // ИСПРАВЛЕНО: добавляем ошибку смены пароля
 }
 
 // Тип для ошибки API
@@ -37,12 +40,13 @@ const initialState: AuthState = {
 	isAuthenticated: false,
 	loading: false,
 	error: null,
+	passwordChanging: false, // ИСПРАВЛЕНО: инициализация
+	passwordChangeError: null, // ИСПРАВЛЕНО: инициализация
 }
 
 // Проверяем наличие токена при загрузке
 const token = localStorage.getItem('token')
 if (token) {
-	// Восстанавливаем состояние из localStorage
 	const userData = localStorage.getItem('user')
 	if (userData) {
 		try {
@@ -63,23 +67,18 @@ export const loginUser = createAsyncThunk(
 		try {
 			console.log('Logging in with:', credentials)
 
-			// Вызываем API - возвращает { data: ApiLoginResponse }
 			const response = await api.api.authLoginCreate(credentials)
 			console.log('Raw API response:', response)
 
-			// ВАЖНО: API возвращает { data: { token: '...', user: {...} } }
-			// Типизируем response как ApiWrappedResponse<ApiLoginResponse>
 			const apiResponse =
 				response as unknown as ApiWrappedResponse<ApiLoginResponse>
 
-			// Извлекаем данные из response.data
 			const responseData = apiResponse.data
 			console.log('Response data:', responseData)
 
 			let token: string | null = null
 			let userData: DsMedUserResponse | null = null
 
-			// Извлекаем токен и пользователя
 			if (responseData) {
 				if (responseData.token) {
 					token = responseData.token
@@ -92,7 +91,6 @@ export const loginUser = createAsyncThunk(
 				}
 			}
 
-			// Если токен найден, сохраняем
 			if (token) {
 				localStorage.setItem('token', token)
 				console.log('✅ Token saved to localStorage')
@@ -100,13 +98,11 @@ export const loginUser = createAsyncThunk(
 				console.warn('❌ No token found in response.data')
 			}
 
-			// Если данные пользователя найдены, сохраняем
 			if (userData) {
 				localStorage.setItem('user', JSON.stringify(userData))
 				console.log('✅ User saved to localStorage:', userData)
 			}
 
-			// Возвращаем данные пользователя для Redux
 			return userData
 		} catch (error: unknown) {
 			const apiError = error as ApiError
@@ -127,14 +123,12 @@ export const logoutUser = createAsyncThunk(
 		try {
 			await api.api.authLogoutCreate()
 
-			// Очищаем localStorage
 			localStorage.removeItem('token')
 			localStorage.removeItem('user')
 
 			console.log('✅ Logout successful, localStorage cleared')
 			return true
 		} catch (error: unknown) {
-			// Все равно очищаем localStorage даже при ошибке
 			localStorage.removeItem('token')
 			localStorage.removeItem('user')
 			const apiError = error as ApiError
@@ -156,12 +150,9 @@ export const getProfile = createAsyncThunk(
 			const response = await api.api.authProfileList()
 			console.log('Profile API response:', response)
 
-			// API возвращает { data: DsMedUserResponse } или DsMedUserResponse напрямую
-			// Проверяем оба варианта
 			let profileData: DsMedUserResponse
 
 			if (response && typeof response === 'object' && 'data' in response) {
-				// Формат { data: {...} }
 				const apiResponse = response as ApiWrappedResponse<DsMedUserResponse>
 				if (apiResponse.data) {
 					profileData = apiResponse.data
@@ -170,20 +161,17 @@ export const getProfile = createAsyncThunk(
 					throw new Error('No data in response')
 				}
 			} else {
-				// Формат напрямую DsMedUserResponse
 				profileData = response as DsMedUserResponse
 				console.log('Profile is direct response')
 			}
 
 			console.log('Profile data:', profileData)
 
-			// Сохраняем данные пользователя
 			localStorage.setItem('user', JSON.stringify(profileData))
 			console.log('✅ Profile saved to localStorage')
 
 			return profileData
 		} catch (error: unknown) {
-			// Если ошибка 401, очищаем данные
 			const apiError = error as ApiError
 			if (apiError.response?.status === 401) {
 				localStorage.removeItem('token')
@@ -220,6 +208,27 @@ export const registerUser = createAsyncThunk(
 	}
 )
 
+// ИСПРАВЛЕНО: Асинхронное действие для смены пароля
+export const changePassword = createAsyncThunk(
+	'auth/changePassword',
+	async (passwordData: DsUpdateMedUserRequest, { rejectWithValue }) => {
+		try {
+			console.log('Changing password...')
+			const response = await api.api.medUsersProfileUpdate(passwordData)
+			console.log('Password change response:', response)
+			return response
+		} catch (error: unknown) {
+			const apiError = error as ApiError
+			console.error('Password change error:', apiError)
+			return rejectWithValue(
+				typeof apiError.response?.data === 'string'
+					? apiError.response.data
+					: 'Ошибка смены пароля'
+			)
+		}
+	}
+)
+
 // Создаем слайс
 const authSlice = createSlice({
 	name: 'auth',
@@ -228,6 +237,10 @@ const authSlice = createSlice({
 		// Редьюсер для очистки ошибки
 		clearError: state => {
 			state.error = null
+		},
+		// ИСПРАВЛЕНО: Редьюсер для очистки ошибки смены пароля
+		clearPasswordChangeError: state => {
+			state.passwordChangeError = null
 		},
 		// Редьюсер для принудительного выхода (например, при 401)
 		forceLogout: state => {
@@ -275,7 +288,6 @@ const authSlice = createSlice({
 			})
 			.addCase(logoutUser.rejected, (state, action) => {
 				state.loading = false
-				// Все равно сбрасываем состояние даже при ошибке
 				state.user = null
 				state.isAuthenticated = false
 				state.error = action.payload as string
@@ -298,7 +310,6 @@ const authSlice = createSlice({
 			)
 			.addCase(getProfile.rejected, (state, action) => {
 				state.loading = false
-				// Не сбрасываем isAuthenticated здесь, чтобы избежать мерцания
 				state.error = action.payload as string
 				console.log('GetProfile rejected:', action.payload)
 			})
@@ -318,9 +329,26 @@ const authSlice = createSlice({
 				state.error = action.payload as string
 				console.log('RegisterUser rejected:', action.payload)
 			})
+
+			// ИСПРАВЛЕНО: Обработка changePassword
+			.addCase(changePassword.pending, state => {
+				state.passwordChanging = true
+				state.passwordChangeError = null
+			})
+			.addCase(changePassword.fulfilled, state => {
+				state.passwordChanging = false
+				state.passwordChangeError = null
+				console.log('Password changed successfully')
+			})
+			.addCase(changePassword.rejected, (state, action) => {
+				state.passwordChanging = false
+				state.passwordChangeError = action.payload as string
+				console.log('Password change rejected:', action.payload)
+			})
 	},
 })
 
 // Экспортируем действия и редьюсер
-export const { clearError, forceLogout } = authSlice.actions
+export const { clearError, clearPasswordChangeError, forceLogout } =
+	authSlice.actions
 export default authSlice.reducer

@@ -70,9 +70,10 @@ const PvlcMedCardPage: React.FC = () => {
 		}
 	}, [dispatch, id, isAuthenticated])
 
-	// Инициализируем форму при загрузке данных
+	// ИСПРАВЛЕНО: Синхронизация формы с данными из Redux
 	useEffect(() => {
 		if (currentOrder) {
+			// Обновляем форму данными из текущей заявки
 			setFormData({
 				patient_name: currentOrder.patient_name || '',
 				doctor_name: currentOrder.doctor_name || '',
@@ -92,7 +93,7 @@ const PvlcMedCardPage: React.FC = () => {
 			setHeightValues(initialHeights)
 			setSavedHeights(initialSaved)
 		}
-	}, [currentOrder])
+	}, [currentOrder]) // ИСПРАВЛЕНО: Зависимость от currentOrder
 
 	// Если пользователь не авторизован, перенаправляем на вход
 	useEffect(() => {
@@ -170,16 +171,41 @@ const PvlcMedCardPage: React.FC = () => {
 		}
 	}
 
+	// ИСПРАВЛЕНО: Функция сохранения данных заявки
 	const handleSave = async () => {
 		if (id) {
-			await dispatch(
-				updateOrder({
-					id: parseInt(id),
-					data: formData,
-				})
-			)
-			setEditMode(false)
+			try {
+				const result = await dispatch(
+					updateOrder({
+						id: parseInt(id),
+						data: formData,
+					})
+				).unwrap()
+
+				console.log('Заявка сохранена:', result)
+
+				// Выходим из режима редактирования
+				setEditMode(false)
+
+				// ИСПРАВЛЕНО: Обновляем данные заявки после сохранения
+				dispatch(getOrderDetail(parseInt(id)))
+			} catch (error) {
+				console.error('Ошибка сохранения заявки:', error)
+				// Можно показать ошибку пользователю
+			}
 		}
+	}
+
+	// ИСПРАВЛЕНО: Функция отмены редактирования
+	const handleCancel = () => {
+		// Восстанавливаем исходные данные из currentOrder
+		if (currentOrder) {
+			setFormData({
+				patient_name: currentOrder.patient_name || '',
+				doctor_name: currentOrder.doctor_name || '',
+			})
+		}
+		setEditMode(false)
 	}
 
 	const handleDelete = async () => {
@@ -386,7 +412,8 @@ const PvlcMedCardPage: React.FC = () => {
 												disabled={!isDraft}
 											/>
 										) : (
-											<div>{currentOrder.patient_name || '-'}</div>
+											// ИСПРАВЛЕНО: Отображаем данные из formData, а не из currentOrder
+											<div>{formData.patient_name || '-'}</div>
 										)}
 									</Form.Group>
 								</Col>
@@ -403,7 +430,8 @@ const PvlcMedCardPage: React.FC = () => {
 												disabled={!isDraft}
 											/>
 										) : (
-											<div>{currentOrder.doctor_name || '-'}</div>
+											// ИСПРАВЛЕНО: Отображаем данные из formData, а не из currentOrder
+											<div>{formData.doctor_name || '-'}</div>
 										)}
 									</Form.Group>
 								</Col>
@@ -579,9 +607,10 @@ const PvlcMedCardPage: React.FC = () => {
 											>
 												Сохранить
 											</Button>
+											{/* ИСПРАВЛЕНО: Используем handleCancel вместо setEditMode(false) */}
 											<Button
 												variant='secondary'
-												onClick={() => setEditMode(false)}
+												onClick={handleCancel}
 												disabled={updatingHeight}
 											>
 												Отмена

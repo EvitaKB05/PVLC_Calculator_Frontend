@@ -155,7 +155,7 @@ const PvlcMedCardsPage: React.FC = () => {
 											size='sm'
 											onClick={() => handleOrderClick(order.id!)}
 										>
-											Просмотр
+											Подробнее
 										</Button>
 									</td>
 								</tr>
