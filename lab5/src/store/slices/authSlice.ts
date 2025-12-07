@@ -5,6 +5,7 @@ import {
 	type ApiLoginRequest,
 	type DsMedUserResponse,
 	type DsMedUserRegistrationRequest,
+	type ApiLoginResponse, // ДОБАВЛЯЕМ ЭТОТ ИМПОРТ
 } from '../../api'
 
 // Интерфейс состояния аутентификации
@@ -22,6 +23,11 @@ interface ApiError {
 		status?: number
 	}
 	message?: string
+}
+
+// Тип для ответа API с оберткой data
+interface ApiWrappedResponse<T> {
+	data?: T
 }
 
 // Начальное состояние
@@ -54,21 +60,56 @@ export const loginUser = createAsyncThunk(
 	'auth/loginUser',
 	async (credentials: ApiLoginRequest, { rejectWithValue }) => {
 		try {
+			console.log('Logging in with:', credentials)
+
+			// Вызываем API - возвращает { data: ApiLoginResponse }
 			const response = await api.api.authLoginCreate(credentials)
+			console.log('Raw API response:', response)
 
-			// Сохраняем токен
-			if (response.token) {
-				localStorage.setItem('token', response.token)
+			// ВАЖНО: API возвращает { data: { token: '...', user: {...} } }
+			// Типизируем response как ApiWrappedResponse<ApiLoginResponse>
+			const apiResponse =
+				response as unknown as ApiWrappedResponse<ApiLoginResponse>
+
+			// Извлекаем данные из response.data
+			const responseData = apiResponse.data
+			console.log('Response data:', responseData)
+
+			let token: string | null = null
+			let userData: DsMedUserResponse | null = null
+
+			// Извлекаем токен и пользователя
+			if (responseData) {
+				if (responseData.token) {
+					token = responseData.token
+					console.log('Found token:', token.substring(0, 20) + '...')
+				}
+
+				if (responseData.user) {
+					userData = responseData.user
+					console.log('Found user:', userData)
+				}
 			}
 
-			// Сохраняем данные пользователя
-			if (response.user) {
-				localStorage.setItem('user', JSON.stringify(response.user))
+			// Если токен найден, сохраняем
+			if (token) {
+				localStorage.setItem('token', token)
+				console.log('✅ Token saved to localStorage')
+			} else {
+				console.warn('❌ No token found in response.data')
 			}
 
-			return response.user || null
+			// Если данные пользователя найдены, сохраняем
+			if (userData) {
+				localStorage.setItem('user', JSON.stringify(userData))
+				console.log('✅ User saved to localStorage:', userData)
+			}
+
+			// Возвращаем данные пользователя для Redux
+			return userData
 		} catch (error: unknown) {
 			const apiError = error as ApiError
+			console.error('Login error:', apiError)
 			return rejectWithValue(
 				typeof apiError.response?.data === 'string'
 					? apiError.response.data
@@ -89,12 +130,14 @@ export const logoutUser = createAsyncThunk(
 			localStorage.removeItem('token')
 			localStorage.removeItem('user')
 
+			console.log('✅ Logout successful, localStorage cleared')
 			return true
 		} catch (error: unknown) {
 			// Все равно очищаем localStorage даже при ошибке
 			localStorage.removeItem('token')
 			localStorage.removeItem('user')
 			const apiError = error as ApiError
+			console.error('Logout error, but cleared localStorage:', apiError)
 			return rejectWithValue(
 				typeof apiError.response?.data === 'string'
 					? apiError.response.data
@@ -110,17 +153,41 @@ export const getProfile = createAsyncThunk(
 	async (_, { rejectWithValue }) => {
 		try {
 			const response = await api.api.authProfileList()
+			console.log('Profile API response:', response)
+
+			// API возвращает { data: DsMedUserResponse } или DsMedUserResponse напрямую
+			// Проверяем оба варианта
+			let profileData: DsMedUserResponse
+
+			if (response && typeof response === 'object' && 'data' in response) {
+				// Формат { data: {...} }
+				const apiResponse = response as ApiWrappedResponse<DsMedUserResponse>
+				if (apiResponse.data) {
+					profileData = apiResponse.data
+					console.log('Extracted profile from response.data')
+				} else {
+					throw new Error('No data in response')
+				}
+			} else {
+				// Формат напрямую DsMedUserResponse
+				profileData = response as DsMedUserResponse
+				console.log('Profile is direct response')
+			}
+
+			console.log('Profile data:', profileData)
 
 			// Сохраняем данные пользователя
-			localStorage.setItem('user', JSON.stringify(response))
+			localStorage.setItem('user', JSON.stringify(profileData))
+			console.log('✅ Profile saved to localStorage')
 
-			return response
+			return profileData
 		} catch (error: unknown) {
 			// Если ошибка 401, очищаем данные
 			const apiError = error as ApiError
 			if (apiError.response?.status === 401) {
 				localStorage.removeItem('token')
 				localStorage.removeItem('user')
+				console.log('❌ 401 error, cleared localStorage')
 			}
 			return rejectWithValue(
 				typeof apiError.response?.data === 'string'
@@ -136,10 +203,13 @@ export const registerUser = createAsyncThunk(
 	'auth/registerUser',
 	async (userData: DsMedUserRegistrationRequest, { rejectWithValue }) => {
 		try {
+			console.log('Registering user:', userData)
 			const response = await api.api.medUsersRegisterCreate(userData)
+			console.log('Registration response:', response)
 			return response
 		} catch (error: unknown) {
 			const apiError = error as ApiError
+			console.error('Registration error:', apiError)
 			return rejectWithValue(
 				typeof apiError.response?.data === 'string'
 					? apiError.response.data
@@ -164,6 +234,7 @@ const authSlice = createSlice({
 			state.isAuthenticated = false
 			localStorage.removeItem('token')
 			localStorage.removeItem('user')
+			console.log('Force logout executed')
 		},
 	},
 	extraReducers: builder => {
@@ -180,12 +251,14 @@ const authSlice = createSlice({
 					state.user = action.payload
 					state.isAuthenticated = true
 					state.error = null
+					console.log('Login fulfilled, user set:', action.payload)
 				}
 			)
 			.addCase(loginUser.rejected, (state, action) => {
 				state.loading = false
 				state.isAuthenticated = false
 				state.error = action.payload as string
+				console.log('Login rejected:', action.payload)
 			})
 
 			// Обработка logoutUser
@@ -197,6 +270,7 @@ const authSlice = createSlice({
 				state.user = null
 				state.isAuthenticated = false
 				state.error = null
+				console.log('Logout fulfilled')
 			})
 			.addCase(logoutUser.rejected, (state, action) => {
 				state.loading = false
@@ -204,6 +278,7 @@ const authSlice = createSlice({
 				state.user = null
 				state.isAuthenticated = false
 				state.error = action.payload as string
+				console.log('Logout rejected but state cleared')
 			})
 
 			// Обработка getProfile
@@ -217,12 +292,14 @@ const authSlice = createSlice({
 					state.user = action.payload
 					state.isAuthenticated = true
 					state.error = null
+					console.log('GetProfile fulfilled, user set:', action.payload)
 				}
 			)
 			.addCase(getProfile.rejected, (state, action) => {
 				state.loading = false
 				// Не сбрасываем isAuthenticated здесь, чтобы избежать мерцания
 				state.error = action.payload as string
+				console.log('GetProfile rejected:', action.payload)
 			})
 
 			// Обработка registerUser
@@ -233,10 +310,12 @@ const authSlice = createSlice({
 			.addCase(registerUser.fulfilled, state => {
 				state.loading = false
 				state.error = null
+				console.log('RegisterUser fulfilled')
 			})
 			.addCase(registerUser.rejected, (state, action) => {
 				state.loading = false
 				state.error = action.payload as string
+				console.log('RegisterUser rejected:', action.payload)
 			})
 	},
 })

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Container, Form, Button, Alert, Spinner } from 'react-bootstrap'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../hooks/redux'
-import { loginUser, clearError } from '../store/slices/authSlice'
+import { loginUser, clearError, getProfile } from '../store/slices/authSlice'
 import Breadcrumbs from '../components/Breadcrumbs'
 
 const PvlcLoginPage: React.FC = () => {
@@ -23,6 +23,7 @@ const PvlcLoginPage: React.FC = () => {
 	// Если пользователь уже авторизован, перенаправляем на главную
 	useEffect(() => {
 		if (isAuthenticated) {
+			console.log('Already authenticated, redirecting to /pvlc_patients')
 			navigate('/pvlc_patients')
 		}
 	}, [isAuthenticated, navigate])
@@ -44,7 +45,25 @@ const PvlcLoginPage: React.FC = () => {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
-		dispatch(loginUser(formData))
+		console.log('Submitting login form') // Логирование
+
+		try {
+			// Входим
+			const result = await dispatch(loginUser(formData))
+			console.log('Login result:', result) // Логирование
+
+			if (loginUser.fulfilled.match(result)) {
+				console.log('Login successful, getting profile...')
+				// Успешный вход, загружаем профиль
+				await dispatch(getProfile())
+				console.log('Profile loaded, redirecting...')
+				// Редирект произойдет автоматически благодаря useEffect
+			} else {
+				console.log('Login failed:', result.payload)
+			}
+		} catch (error) {
+			console.error('Login error:', error)
+		}
 	}
 
 	return (

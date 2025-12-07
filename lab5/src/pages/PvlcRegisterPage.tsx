@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { Container, Form, Button, Alert, Spinner } from 'react-bootstrap'
+import { Container, Form, Button, Spinner } from 'react-bootstrap'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../hooks/redux'
-import { registerUser, clearError } from '../store/slices/authSlice'
+import { registerUser, clearError, loginUser } from '../store/slices/authSlice'
 import Breadcrumbs from '../components/Breadcrumbs'
 
 const PvlcRegisterPage: React.FC = () => {
@@ -10,9 +10,7 @@ const PvlcRegisterPage: React.FC = () => {
 	const navigate = useNavigate()
 
 	// Получаем состояние из Redux
-	const { isAuthenticated, loading, error } = useAppSelector(
-		state => state.auth
-	)
+	const { isAuthenticated, loading } = useAppSelector(state => state.auth)
 
 	// Локальное состояние формы
 	const [formData, setFormData] = useState({
@@ -53,12 +51,43 @@ const PvlcRegisterPage: React.FC = () => {
 		}
 
 		// Отправляем данные для регистрации
-		dispatch(
-			registerUser({
-				login: formData.login,
-				password: formData.password,
-			})
-		)
+		const userData = {
+			login: formData.login,
+			password: formData.password,
+			is_moderator: false, // Явно указываем
+		}
+
+		console.log('Registering user:', userData)
+
+		try {
+			const result = await dispatch(registerUser(userData))
+
+			if (registerUser.fulfilled.match(result)) {
+				console.log('Registration successful, now logging in...')
+				alert('Регистрация успешна! Выполняется вход...')
+
+				// Автоматически входим после регистрации
+				const loginResult = await dispatch(
+					loginUser({
+						login: formData.login,
+						password: formData.password,
+					})
+				)
+
+				if (loginUser.fulfilled.match(loginResult)) {
+					console.log('Auto-login successful')
+					// Редирект произойдет автоматически благодаря useEffect
+				} else {
+					console.log('Auto-login failed, redirecting to login page')
+					navigate('/pvlc_login')
+				}
+			} else {
+				console.log('Registration failed:', result.payload)
+				alert('Ошибка регистрации: ' + (result.payload as string))
+			}
+		} catch (error) {
+			console.error('Registration error:', error)
+		}
 	}
 
 	return (
@@ -80,16 +109,6 @@ const PvlcRegisterPage: React.FC = () => {
 			<Container>
 				<div className='row justify-content-center'>
 					<div className='col-md-6 col-lg-4'>
-						{error && (
-							<Alert
-								variant='danger'
-								dismissible
-								onClose={() => dispatch(clearError())}
-							>
-								{error}
-							</Alert>
-						)}
-
 						<Form onSubmit={handleSubmit} className='mt-4'>
 							<Form.Group className='mb-3'>
 								<Form.Label>Логин</Form.Label>
@@ -130,7 +149,7 @@ const PvlcRegisterPage: React.FC = () => {
 								/>
 							</Form.Group>
 
-							<div className='d-grid gap-2'>
+							<div className='d-grid'>
 								<Button
 									type='submit'
 									variant='primary'

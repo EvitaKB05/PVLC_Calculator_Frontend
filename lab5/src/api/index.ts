@@ -15,13 +15,24 @@ const httpClient = new HttpClient({
 httpClient.instance.interceptors.request.use(
 	(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
 		const token = localStorage.getItem('token')
+
+		// Отключаем логи для /api/med_card/icon чтобы не засорять консоль
+		if (config.url && !config.url.includes('/med_card/icon')) {
+			console.log('🔧 Interceptor - URL:', config.url)
+			console.log('🔧 Interceptor - Token exists:', !!token)
+		}
+
 		if (token && config.headers) {
-			// Используем set для добавления заголовка
-			config.headers.set('Authorization', `Bearer ${token}`)
+			// Добавляем токен
+			config.headers.Authorization = `Bearer ${token}`
+			if (config.url && !config.url.includes('/med_card/icon')) {
+				console.log('🔧 Interceptor - Added Authorization header')
+			}
 		}
 		return config
 	},
 	(error: AxiosError): Promise<AxiosError> => {
+		console.error('🔧 Interceptor request error:', error)
 		return Promise.reject(error)
 	}
 )

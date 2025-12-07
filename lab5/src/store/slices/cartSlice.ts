@@ -45,16 +45,29 @@ export const getCartIcon = createAsyncThunk(
 )
 
 // Асинхронное действие для добавления формулы в корзину
+// Асинхронное действие для добавления формулы в корзину
 export const addToCart = createAsyncThunk(
 	'cart/addToCart',
 	async (formulaId: number, { rejectWithValue }) => {
 		try {
+			console.log('Adding to cart, formulaId:', formulaId) // Логирование
+
+			// Проверяем токен
+			const token = localStorage.getItem('token')
+			console.log('Token exists:', !!token) // Логирование
+
 			const response = await api.api.pvlcMedFormulasAddToCartCreate({
 				id: formulaId,
 			})
+			console.log('Add to cart response:', response) // Логирование
 			return { formulaId, response }
 		} catch (error: unknown) {
 			const apiError = error as ApiError
+			console.error(
+				'Add to cart error:',
+				apiError.response?.data,
+				apiError.response?.status
+			) // Логирование
 			return rejectWithValue(
 				typeof apiError.response?.data === 'string'
 					? apiError.response.data

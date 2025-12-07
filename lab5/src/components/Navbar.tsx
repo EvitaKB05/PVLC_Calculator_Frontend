@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Navbar, Nav, Container, Button } from 'react-bootstrap'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../hooks/redux'
-import { logoutUser } from '../store/slices/authSlice'
+import { logoutUser, getProfile } from '../store/slices/authSlice'
 import { resetCart } from '../store/slices/cartSlice'
 import { resetFilters } from '../store/slices/filterSlice'
 
@@ -12,7 +12,16 @@ const CustomNavbar: React.FC = () => {
 	const dispatch = useAppDispatch()
 
 	// Получаем состояние из Redux
-	const { isAuthenticated, user } = useAppSelector(state => state.auth)
+	const { isAuthenticated, user, loading } = useAppSelector(state => state.auth)
+
+	// При монтировании проверяем токен и загружаем профиль
+	useEffect(() => {
+		const token = localStorage.getItem('token')
+		if (token && !isAuthenticated && !loading) {
+			console.log('Token found, loading profile...')
+			dispatch(getProfile())
+		}
+	}, [dispatch, isAuthenticated, loading])
 
 	const handleLogout = async () => {
 		await dispatch(logoutUser())
@@ -20,6 +29,8 @@ const CustomNavbar: React.FC = () => {
 		dispatch(resetFilters())
 		navigate('/pvlc_home_page')
 	}
+
+	console.log('Navbar - Auth state:', { isAuthenticated, user: user?.login }) // Логирование
 
 	return (
 		<Navbar bg='light' expand='lg' className='mb-4'>
