@@ -1,3 +1,4 @@
+//src/components/PvlcRegisterPage.tsx
 import React, { useState, useEffect } from 'react'
 import { Container, Form, Button, Spinner } from 'react-bootstrap'
 import { useNavigate, Link } from 'react-router-dom'
