@@ -1,4 +1,4 @@
-//src/components/PvlcMedCardPage.tsx
+// src/pages/PvlcMedCardPage.tsx
 import React, { useState, useEffect } from 'react'
 import {
 	Container,
@@ -8,8 +8,6 @@ import {
 	Form,
 	Row,
 	Col,
-	InputGroup,
-	FormControl,
 } from 'react-bootstrap'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../hooks/redux'
@@ -20,6 +18,7 @@ import {
 	formOrder,
 	clearOrdersError,
 } from '../store/slices/ordersSlice'
+import { deleteCalculation } from '../store/slices/medCalculationsSlice'
 import { getCartIcon } from '../store/slices/cartSlice'
 import Breadcrumbs from '../components/Breadcrumbs'
 import { apiService } from '../services/api'
@@ -32,6 +31,9 @@ const PvlcMedCardPage: React.FC = () => {
 	// Получаем состояние из Redux
 	const { currentOrder, loading, error } = useAppSelector(state => state.orders)
 	const { isAuthenticated } = useAppSelector(state => state.auth)
+	const { loading: deletingCalculation } = useAppSelector(
+		state => state.medCalculations
+	)
 
 	// Локальное состояние для редактирования
 	const [editMode, setEditMode] = useState(false)
@@ -135,6 +137,29 @@ const PvlcMedCardPage: React.FC = () => {
 		}
 	}
 
+	// Функция для удаления формулы из заявки
+	const handleDeleteCalculation = async (cardId: number, formulaId: number) => {
+		if (window.confirm('Удалить эту формулу из заявки?')) {
+			try {
+				await dispatch(
+					deleteCalculation({
+						card_id: cardId,
+						pvlc_med_formula_id: formulaId,
+					})
+				).unwrap()
+
+				// Обновляем данные заявки
+				if (id) {
+					dispatch(getOrderDetail(parseInt(id)))
+					// Обновляем иконку корзины
+					dispatch(getCartIcon())
+				}
+			} catch (error) {
+				console.error('Ошибка удаления формулы:', error)
+			}
+		}
+	}
+
 	const isDraft = currentOrder?.status === 'черновик'
 
 	if (loading) {
@@ -191,6 +216,7 @@ const PvlcMedCardPage: React.FC = () => {
 
 	return (
 		<Container fluid className='px-0'>
+			{/* ИСПРАВЛЕНО: Возвращаем Breadcrumbs, убираем кастомный header */}
 			<Breadcrumbs
 				items={[
 					{ label: 'Главная', path: '/pvlc_home_page' },
@@ -199,83 +225,206 @@ const PvlcMedCardPage: React.FC = () => {
 				]}
 			/>
 
-			{/* Синий блок */}
-			<div className='page-header'>
-				<Container>
-					<h1 className='page-title'>Заявка на расчет ДЖЕЛ</h1>
-				</Container>
-			</div>
+			<main className='main-content'>
+				<div className='container'>
+					{/* Заголовок страницы */}
+					<div className='page-header'>
+						<h1 className='page-title'>
+							Расчёт должной жизненной емкости лёгких (ДЖЕЛ)
+						</h1>
+					</div>
 
-			<Container>
-				{/* Информация о заявке */}
-				<div className='card mb-4'>
-					<div className='card-body'>
-						<h5 className='card-title'>Информация о заявке</h5>
-						<Row className='mb-3'>
-							<Col md={6}>
-								<Form.Group>
-									<Form.Label>Статус</Form.Label>
-									<div>
-										<span
-											className={`badge bg-${isDraft ? 'warning' : 'info'}`}
-										>
-											{currentOrder.status}
-										</span>
+					{/* ИСПРАВЛЕНО: Убрана секция search-section */}
+
+					{/* Информация о заявке */}
+					<div
+						className='card mb-4'
+						style={{ margin: '0 auto', maxWidth: '1050px' }}
+					>
+						<div className='card-body'>
+							<Row className='mb-3'>
+								<Col md={6}>
+									<Form.Group>
+										<Form.Label>Статус</Form.Label>
+										<div>
+											<span
+												className={`badge bg-${isDraft ? 'warning' : 'info'}`}
+											>
+												{currentOrder.status}
+											</span>
+										</div>
+									</Form.Group>
+								</Col>
+								<Col md={6}>
+									<Form.Group>
+										<Form.Label>Общий результат ДЖЕЛ</Form.Label>
+										<div>
+											<strong>{currentOrder.total_result || '0'} л</strong>
+										</div>
+									</Form.Group>
+								</Col>
+							</Row>
+
+							<Row>
+								<Col md={6}>
+									<Form.Group className='mb-3'>
+										<Form.Label>Пациент</Form.Label>
+										{editMode ? (
+											<Form.Control
+												type='text'
+												name='patient_name'
+												value={formData.patient_name}
+												onChange={handleInputChange}
+												placeholder='Введите ФИО пациента'
+												disabled={!isDraft}
+											/>
+										) : (
+											<div>{currentOrder.patient_name || '-'}</div>
+										)}
+									</Form.Group>
+								</Col>
+								<Col md={6}>
+									<Form.Group className='mb-3'>
+										<Form.Label>Врач</Form.Label>
+										{editMode ? (
+											<Form.Control
+												type='text'
+												name='doctor_name'
+												value={formData.doctor_name}
+												onChange={handleInputChange}
+												placeholder='Введите ФИО врача'
+												disabled={!isDraft}
+											/>
+										) : (
+											<div>{currentOrder.doctor_name || '-'}</div>
+										)}
+									</Form.Group>
+								</Col>
+							</Row>
+						</div>
+					</div>
+
+					{/* Выбранные формулы в стиле HTML-примера */}
+					<section className='selected-categories'>
+						<h2 className='section-title'>Выбранные категории</h2>
+
+						{currentOrder.med_calculations &&
+						currentOrder.med_calculations.length > 0 ? (
+							<div className='categories-grid'>
+								{currentOrder.med_calculations.map(calc => (
+									<div key={calc.pvlc_med_formula_id} className='category-card'>
+										<div className='category-image-container'>
+											<div className='category-image'>
+												<img
+													src={getImageUrl(calc.image_url)}
+													alt={calc.title}
+													className='category-img'
+												/>
+											</div>
+											{/* Обычная надпись под картинкой */}
+											<div className='category-title-plain'>{calc.title}</div>
+										</div>
+										<div className='category-info'>
+											<div className='category-details'>
+												<div className='parameters-row'>
+													{/* Поле для ввода роста */}
+													<div className='parameter-group'>
+														<span className='parameter-label'>Рост:</span>
+														<input
+															type='number'
+															className='height-input'
+															placeholder='см'
+															min='50'
+															max='250'
+															value={
+																heightValues[calc.pvlc_med_formula_id!] || ''
+															}
+															onChange={e =>
+																handleHeightChange(
+																	calc.pvlc_med_formula_id!,
+																	e.target.value
+																)
+															}
+															disabled={!isDraft}
+														/>
+													</div>
+													{/* Результат ДЖЕЛ */}
+													<div className='parameter-group'>
+														<span className='parameter-label'>
+															Результат ДЖЕЛ:
+														</span>
+														<input
+															type='text'
+															className='result-input'
+															value={
+																calc.final_result
+																	? `${calc.final_result} л`
+																	: 'не рассчитано'
+															}
+															placeholder='л'
+															readOnly
+														/>
+													</div>
+													{/* Кнопка удаления формулы */}
+													{isDraft && (
+														<div className='parameter-group'>
+															<button
+																type='button'
+																className='btn btn-danger btn-sm'
+																onClick={() =>
+																	handleDeleteCalculation(
+																		currentOrder.id!,
+																		calc.pvlc_med_formula_id!
+																	)
+																}
+																title='Удалить из заявки'
+																disabled={deletingCalculation}
+																style={{
+																	padding: '0.4rem 0.8rem',
+																	marginLeft: '10px',
+																	display: 'flex',
+																	alignItems: 'center',
+																	justifyContent: 'center',
+																}}
+															>
+																{deletingCalculation ? (
+																	<Spinner
+																		as='span'
+																		animation='border'
+																		size='sm'
+																	/>
+																) : (
+																	'🗑️'
+																)}
+															</button>
+														</div>
+													)}
+												</div>
+											</div>
+										</div>
 									</div>
-								</Form.Group>
-							</Col>
-							<Col md={6}>
-								<Form.Group>
-									<Form.Label>Общий результат ДЖЕЛ</Form.Label>
-									<div>
-										<strong>{currentOrder.total_result || '0'} л</strong>
-									</div>
-								</Form.Group>
-							</Col>
-						</Row>
+								))}
+							</div>
+						) : (
+							<Alert variant='info'>
+								В этой заявке нет выбранных формул. Добавьте формулы на странице
+								категорий.
+							</Alert>
+						)}
+					</section>
 
-						<Row>
-							<Col md={6}>
-								<Form.Group className='mb-3'>
-									<Form.Label>Пациент</Form.Label>
-									{editMode ? (
-										<Form.Control
-											type='text'
-											name='patient_name'
-											value={formData.patient_name}
-											onChange={handleInputChange}
-											placeholder='Введите ФИО пациента'
-										/>
-									) : (
-										<div>{currentOrder.patient_name || '-'}</div>
-									)}
-								</Form.Group>
-							</Col>
-							<Col md={6}>
-								<Form.Group className='mb-3'>
-									<Form.Label>Врач</Form.Label>
-									{editMode ? (
-										<Form.Control
-											type='text'
-											name='doctor_name'
-											value={formData.doctor_name}
-											onChange={handleInputChange}
-											placeholder='Введите ФИО врача'
-										/>
-									) : (
-										<div>{currentOrder.doctor_name || '-'}</div>
-									)}
-								</Form.Group>
-							</Col>
-						</Row>
-
-						{/* Кнопки действий */}
-						<div className='d-flex gap-2'>
+					{/* Кнопки действий */}
+					<section className='action-buttons'>
+						<div className='buttons-container'>
 							{isDraft && (
 								<>
 									{editMode ? (
 										<>
-											<Button variant='success' onClick={handleSave}>
+											<Button
+												variant='success'
+												onClick={handleSave}
+												className='btn-calculate'
+											>
 												Сохранить
 											</Button>
 											<Button
@@ -286,110 +435,34 @@ const PvlcMedCardPage: React.FC = () => {
 											</Button>
 										</>
 									) : (
-										<Button variant='primary' onClick={() => setEditMode(true)}>
+										<Button
+											variant='primary'
+											onClick={() => setEditMode(true)}
+											className='btn-calculate'
+										>
 											Редактировать
 										</Button>
 									)}
-									<Button variant='warning' onClick={handleFormOrder}>
+									<Button
+										variant='warning'
+										onClick={handleFormOrder}
+										className='btn-calculate'
+									>
 										Сформировать
 									</Button>
-									<Button variant='danger' onClick={handleDelete}>
-										Удалить
+									<Button
+										variant='danger'
+										onClick={handleDelete}
+										className='btn-delete'
+									>
+										Удалить заявку
 									</Button>
 								</>
 							)}
 						</div>
-					</div>
+					</section>
 				</div>
-
-				{/* Выбранные формулы */}
-				<h4 className='mb-3'>Выбранные формулы для расчета</h4>
-
-				{currentOrder.med_calculations &&
-				currentOrder.med_calculations.length > 0 ? (
-					<div className='row'>
-						{currentOrder.med_calculations.map(calc => (
-							<div key={calc.pvlc_med_formula_id} className='col-md-6 mb-4'>
-								<div className='card h-100'>
-									<div className='card-body'>
-										<Row>
-											<Col md={4}>
-												<img
-													src={getImageUrl(calc.image_url)}
-													alt={calc.title}
-													className='img-fluid rounded'
-													style={{ maxHeight: '150px', objectFit: 'cover' }}
-													onError={e => {
-														;(e.target as HTMLImageElement).src =
-															'/DefaultImage.jpg'
-													}}
-												/>
-											</Col>
-											<Col md={8}>
-												<h5>{calc.title}</h5>
-												<p className='text-muted small'>{calc.description}</p>
-
-												<div className='mb-2'>
-													<strong>Формула:</strong> {calc.formula}
-												</div>
-
-												<Row className='align-items-center'>
-													<Col>
-														<Form.Group>
-															<Form.Label>Рост (см)</Form.Label>
-															<InputGroup>
-																<FormControl
-																	type='number'
-																	value={
-																		heightValues[calc.pvlc_med_formula_id!] ||
-																		''
-																	}
-																	onChange={e =>
-																		handleHeightChange(
-																			calc.pvlc_med_formula_id!,
-																			e.target.value
-																		)
-																	}
-																	disabled={!isDraft}
-																	min='50'
-																	max='250'
-																/>
-																<InputGroup.Text>см</InputGroup.Text>
-															</InputGroup>
-														</Form.Group>
-													</Col>
-													<Col>
-														<Form.Group>
-															<Form.Label>Результат ДЖЕЛ</Form.Label>
-															<InputGroup>
-																<FormControl
-																	type='text'
-																	value={
-																		calc.final_result
-																			? `${calc.final_result} л`
-																			: 'не рассчитано'
-																	}
-																	readOnly
-																/>
-																<InputGroup.Text>л</InputGroup.Text>
-															</InputGroup>
-														</Form.Group>
-													</Col>
-												</Row>
-											</Col>
-										</Row>
-									</div>
-								</div>
-							</div>
-						))}
-					</div>
-				) : (
-					<Alert variant='info'>
-						В этой заявке нет выбранных формул. Добавьте формулы на странице
-						категорий.
-					</Alert>
-				)}
-			</Container>
+			</main>
 		</Container>
 	)
 }
