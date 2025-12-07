@@ -1,4 +1,4 @@
-//src/components/PvlcMedCardsPage.tsx
+// src/pages/PvlcMedCardsPage.tsx
 import React, { useEffect } from 'react'
 import {
 	Container,
@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../hooks/redux'
 import { getOrdersList } from '../store/slices/ordersSlice'
 import Breadcrumbs from '../components/Breadcrumbs'
+import type { DsPvlcMedCardResponse } from '../api'
 
 const PvlcMedCardsPage: React.FC = () => {
 	const dispatch = useAppDispatch()
@@ -53,8 +54,24 @@ const PvlcMedCardsPage: React.FC = () => {
 
 	// Функция для форматирования даты
 	const formatDate = (dateString?: string) => {
-		if (!dateString) return '-'
-		return new Date(dateString).toLocaleDateString('ru-RU')
+		if (!dateString) return '—'
+		try {
+			const date = new Date(dateString)
+			return date.toLocaleDateString('ru-RU', {
+				day: '2-digit',
+				month: '2-digit',
+				year: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit',
+			})
+		} catch {
+			return '—'
+		}
+	}
+
+	// Функция для получения даты обновления (используем finalized_at если есть, иначе created_at)
+	const getUpdatedDate = (order: DsPvlcMedCardResponse) => {
+		return order.finalized_at || order.completed_at || order.created_at
 	}
 
 	// Обработчик клика по заявке
@@ -106,7 +123,8 @@ const PvlcMedCardsPage: React.FC = () => {
 								<th>Врач</th>
 								<th>Статус</th>
 								<th>Результат ДЖЕЛ</th>
-								<th>Создана</th>
+								<th>Дата создания</th>
+								<th>Дата обновления</th>
 								<th>Действия</th>
 							</tr>
 						</thead>
@@ -114,17 +132,18 @@ const PvlcMedCardsPage: React.FC = () => {
 							{orders.map(order => (
 								<tr key={order.id}>
 									<td>{order.id}</td>
-									<td>{order.patient_name || '-'}</td>
-									<td>{order.doctor_name || '-'}</td>
+									<td>{order.patient_name || '—'}</td>
+									<td>{order.doctor_name || '—'}</td>
 									<td>
 										<Badge bg={getStatusColor(order.status || '')}>
 											{order.status}
 										</Badge>
 									</td>
 									<td>
-										{order.total_result ? `${order.total_result} л` : '-'}
+										{order.total_result ? `${order.total_result} л` : '—'}
 									</td>
 									<td>{formatDate(order.created_at)}</td>
+									<td>{formatDate(getUpdatedDate(order))}</td>
 									<td>
 										<Button
 											variant='outline-primary'

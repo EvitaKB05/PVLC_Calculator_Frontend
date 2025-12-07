@@ -5,6 +5,7 @@ import {
 	api,
 	type DsPvlcMedCardResponse,
 	type DsUpdatePvlcMedCardRequest,
+	type DsUpdateMedMmPvlcCalculationAPIRequest,
 } from '../../api'
 
 // Интерфейс состояния заявок
@@ -12,6 +13,7 @@ interface OrdersState {
 	orders: DsPvlcMedCardResponse[]
 	currentOrder: DsPvlcMedCardResponse | null
 	loading: boolean
+	updatingHeight: boolean
 	error: string | null
 }
 
@@ -41,6 +43,7 @@ const initialState: OrdersState = {
 	orders: [],
 	currentOrder: null,
 	loading: false,
+	updatingHeight: false,
 	error: null,
 }
 
@@ -51,7 +54,6 @@ export const getOrdersList = createAsyncThunk(
 		try {
 			const response = await api.api.pvlcMedCardsList(params)
 
-			// ИСПРАВЛЕНО: API возвращает { data: DsPvlcMedCardResponse[] }
 			const apiResponse = response as ApiWrappedResponse<
 				DsPvlcMedCardResponse[]
 			>
@@ -60,7 +62,6 @@ export const getOrdersList = createAsyncThunk(
 				return apiResponse.data
 			}
 
-			// ИЛИ: возвращает массив напрямую (проверяем оба варианта)
 			if (Array.isArray(response)) {
 				return response as DsPvlcMedCardResponse[]
 			}
@@ -83,14 +84,12 @@ export const getOrderDetail = createAsyncThunk(
 	async (id: number, { rejectWithValue }) => {
 		try {
 			const response = await api.api.pvlcMedCardsDetail({ id })
-			// ИСПРАВЛЕНО: API возвращает { data: DsPvlcMedCardResponse }
 			const apiResponse = response as ApiWrappedResponse<DsPvlcMedCardResponse>
 
 			if (apiResponse.data) {
 				return apiResponse.data
 			}
 
-			// ИЛИ: возвращает объект напрямую
 			if (response && typeof response === 'object' && 'id' in response) {
 				return response as DsPvlcMedCardResponse
 			}
@@ -102,6 +101,43 @@ export const getOrderDetail = createAsyncThunk(
 				typeof apiError.response?.data === 'string'
 					? apiError.response.data
 					: 'Ошибка загрузки заявки'
+			)
+		}
+	}
+)
+
+// ИСПРАВЛЕНО: Асинхронное действие для обновления роста в расчете
+export const updateCalculationHeight = createAsyncThunk(
+	'orders/updateCalculationHeight',
+	async (
+		{
+			cardId,
+			formulaId,
+			height,
+		}: {
+			cardId: number
+			formulaId: number
+			height: number
+		},
+		{ rejectWithValue }
+	) => {
+		try {
+			const requestData: DsUpdateMedMmPvlcCalculationAPIRequest = {
+				card_id: cardId,
+				pvlc_med_formula_id: formulaId,
+				data: {
+					input_height: height,
+				},
+			}
+
+			const response = await api.api.medMmPvlcCalculationsUpdate(requestData)
+			return { cardId, formulaId, height, response }
+		} catch (error: unknown) {
+			const apiError = error as ApiError
+			return rejectWithValue(
+				typeof apiError.response?.data === 'string'
+					? apiError.response.data
+					: 'Ошибка обновления роста'
 			)
 		}
 	}
@@ -177,6 +213,10 @@ const ordersSlice = createSlice({
 		clearCurrentOrder: state => {
 			state.currentOrder = null
 		},
+		// Редьюсер для сброса состояния обновления роста
+		clearUpdatingHeight: state => {
+			state.updatingHeight = false
+		},
 	},
 	extraReducers: builder => {
 		builder
@@ -191,7 +231,6 @@ const ordersSlice = createSlice({
 					state.loading = false
 					state.orders = action.payload
 					state.error = null
-					console.log('Orders list loaded:', action.payload.length, 'items')
 				}
 			)
 			.addCase(getOrdersList.rejected, (state, action) => {
@@ -214,6 +253,36 @@ const ordersSlice = createSlice({
 			)
 			.addCase(getOrderDetail.rejected, (state, action) => {
 				state.loading = false
+				state.error = action.payload as string
+			})
+
+			// Обработка updateCalculationHeight
+			.addCase(updateCalculationHeight.pending, state => {
+				state.updatingHeight = true
+				state.error = null
+			})
+			.addCase(updateCalculationHeight.fulfilled, (state, action) => {
+				state.updatingHeight = false
+				// Обновляем данные расчета в текущей заявке
+				if (state.currentOrder?.id === action.payload.cardId) {
+					const updatedCalculations = state.currentOrder.med_calculations?.map(
+						calc =>
+							calc.pvlc_med_formula_id === action.payload.formulaId
+								? { ...calc, input_height: action.payload.height }
+								: calc
+					)
+
+					if (updatedCalculations) {
+						state.currentOrder = {
+							...state.currentOrder,
+							med_calculations: updatedCalculations,
+						}
+					}
+				}
+				state.error = null
+			})
+			.addCase(updateCalculationHeight.rejected, (state, action) => {
+				state.updatingHeight = false
 				state.error = action.payload as string
 			})
 
@@ -293,5 +362,6 @@ const ordersSlice = createSlice({
 })
 
 // Экспортируем действия и редьюсер
-export const { clearOrdersError, clearCurrentOrder } = ordersSlice.actions
+export const { clearOrdersError, clearCurrentOrder, clearUpdatingHeight } =
+	ordersSlice.actions
 export default ordersSlice.reducer

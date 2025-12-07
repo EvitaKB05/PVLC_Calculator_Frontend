@@ -17,11 +17,16 @@ import {
 	deleteOrder,
 	formOrder,
 	clearOrdersError,
+	updateCalculationHeight,
+	clearUpdatingHeight,
 } from '../store/slices/ordersSlice'
 import { deleteCalculation } from '../store/slices/medCalculationsSlice'
 import { getCartIcon } from '../store/slices/cartSlice'
 import Breadcrumbs from '../components/Breadcrumbs'
 import { apiService } from '../services/api'
+
+// Тип для таймера
+type TimerType = ReturnType<typeof setTimeout>
 
 const PvlcMedCardPage: React.FC = () => {
 	const { id } = useParams<{ id: string }>()
@@ -29,7 +34,9 @@ const PvlcMedCardPage: React.FC = () => {
 	const navigate = useNavigate()
 
 	// Получаем состояние из Redux
-	const { currentOrder, loading, error } = useAppSelector(state => state.orders)
+	const { currentOrder, loading, error, updatingHeight } = useAppSelector(
+		state => state.orders
+	)
 	const { isAuthenticated } = useAppSelector(state => state.auth)
 	const { loading: deletingCalculation } = useAppSelector(
 		state => state.medCalculations
@@ -42,13 +49,23 @@ const PvlcMedCardPage: React.FC = () => {
 		doctor_name: '',
 	})
 
-	// Локальное состояние для роста
+	// Локальное состояние для роста и таймеров автосохранения
 	const [heightValues, setHeightValues] = useState<Record<number, number>>({})
+	const [heightTimers, setHeightTimers] = useState<Record<number, TimerType>>(
+		{}
+	)
+	const [savedHeights, setSavedHeights] = useState<Record<number, boolean>>({})
 
 	// Загружаем данные заявки при монтировании
 	useEffect(() => {
 		if (id && isAuthenticated) {
 			dispatch(getOrderDetail(parseInt(id)))
+		}
+
+		// Очищаем таймеры при размонтировании
+		return () => {
+			Object.values(heightTimers).forEach(timer => clearTimeout(timer))
+			dispatch(clearUpdatingHeight())
 		}
 	}, [dispatch, id, isAuthenticated])
 
@@ -62,14 +79,17 @@ const PvlcMedCardPage: React.FC = () => {
 
 			// Инициализируем значения роста из расчетов
 			const initialHeights: Record<number, number> = {}
+			const initialSaved: Record<number, boolean> = {}
 			if (currentOrder.med_calculations) {
 				currentOrder.med_calculations.forEach(calc => {
 					if (calc.pvlc_med_formula_id && calc.input_height) {
 						initialHeights[calc.pvlc_med_formula_id] = calc.input_height
+						initialSaved[calc.pvlc_med_formula_id] = true // Уже сохранено в БД
 					}
 				})
 			}
 			setHeightValues(initialHeights)
+			setSavedHeights(initialSaved)
 		}
 	}, [currentOrder])
 
@@ -97,10 +117,56 @@ const PvlcMedCardPage: React.FC = () => {
 
 	const handleHeightChange = (formulaId: number, value: string) => {
 		const numValue = parseFloat(value) || 0
+
+		// Обновляем локальное состояние
 		setHeightValues({
 			...heightValues,
 			[formulaId]: numValue,
 		})
+
+		// Сбрасываем статус сохранения
+		setSavedHeights({
+			...savedHeights,
+			[formulaId]: false,
+		})
+
+		// Очищаем предыдущий таймер
+		if (heightTimers[formulaId]) {
+			clearTimeout(heightTimers[formulaId])
+		}
+
+		// Создаем новый таймер для автосохранения через 1 секунду
+		const timer = setTimeout(() => {
+			saveHeight(formulaId, numValue)
+		}, 1000)
+
+		setHeightTimers({
+			...heightTimers,
+			[formulaId]: timer,
+		})
+	}
+
+	// Функция сохранения роста в БД
+	const saveHeight = async (formulaId: number, height: number) => {
+		if (!id || !currentOrder?.id || height <= 0) return
+
+		try {
+			await dispatch(
+				updateCalculationHeight({
+					cardId: currentOrder.id,
+					formulaId,
+					height,
+				})
+			).unwrap()
+
+			// Помечаем как сохраненное
+			setSavedHeights({
+				...savedHeights,
+				[formulaId]: true,
+			})
+		} catch (error) {
+			console.error('Ошибка сохранения роста:', error)
+		}
 	}
 
 	const handleSave = async () => {
@@ -214,9 +280,25 @@ const PvlcMedCardPage: React.FC = () => {
 		return imageUrl ? apiService.getImageUrl(imageUrl) : '/DefaultImage.jpg'
 	}
 
+	// Функция форматирования даты
+	const formatDate = (dateString?: string) => {
+		if (!dateString) return '—'
+		try {
+			const date = new Date(dateString)
+			return date.toLocaleDateString('ru-RU', {
+				day: '2-digit',
+				month: '2-digit',
+				year: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit',
+			})
+		} catch {
+			return '—'
+		}
+	}
+
 	return (
 		<Container fluid className='px-0'>
-			{/* ИСПРАВЛЕНО: Возвращаем Breadcrumbs, убираем кастомный header */}
 			<Breadcrumbs
 				items={[
 					{ label: 'Главная', path: '/pvlc_home_page' },
@@ -234,8 +316,6 @@ const PvlcMedCardPage: React.FC = () => {
 						</h1>
 					</div>
 
-					{/* ИСПРАВЛЕНО: Убрана секция search-section */}
-
 					{/* Информация о заявке */}
 					<div
 						className='card mb-4'
@@ -243,7 +323,7 @@ const PvlcMedCardPage: React.FC = () => {
 					>
 						<div className='card-body'>
 							<Row className='mb-3'>
-								<Col md={6}>
+								<Col md={4}>
 									<Form.Group>
 										<Form.Label>Статус</Form.Label>
 										<div>
@@ -255,11 +335,19 @@ const PvlcMedCardPage: React.FC = () => {
 										</div>
 									</Form.Group>
 								</Col>
-								<Col md={6}>
+								<Col md={4}>
 									<Form.Group>
 										<Form.Label>Общий результат ДЖЕЛ</Form.Label>
 										<div>
 											<strong>{currentOrder.total_result || '0'} л</strong>
+										</div>
+									</Form.Group>
+								</Col>
+								<Col md={4}>
+									<Form.Group>
+										<Form.Label>Дата создания</Form.Label>
+										<div>
+											<strong>{formatDate(currentOrder.created_at)}</strong>
 										</div>
 									</Form.Group>
 								</Col>
@@ -321,32 +409,73 @@ const PvlcMedCardPage: React.FC = () => {
 													className='category-img'
 												/>
 											</div>
-											{/* Обычная надпись под картинкой */}
 											<div className='category-title-plain'>{calc.title}</div>
 										</div>
 										<div className='category-info'>
 											<div className='category-details'>
 												<div className='parameters-row'>
-													{/* Поле для ввода роста */}
+													{/* Поле для ввода роста с индикатором сохранения */}
 													<div className='parameter-group'>
 														<span className='parameter-label'>Рост:</span>
-														<input
-															type='number'
-															className='height-input'
-															placeholder='см'
-															min='50'
-															max='250'
-															value={
-																heightValues[calc.pvlc_med_formula_id!] || ''
-															}
-															onChange={e =>
-																handleHeightChange(
-																	calc.pvlc_med_formula_id!,
-																	e.target.value
-																)
-															}
-															disabled={!isDraft}
-														/>
+														<div style={{ position: 'relative' }}>
+															<input
+																type='number'
+																className='height-input'
+																placeholder='см'
+																min='50'
+																max='250'
+																value={
+																	heightValues[calc.pvlc_med_formula_id!] || ''
+																}
+																onChange={e =>
+																	handleHeightChange(
+																		calc.pvlc_med_formula_id!,
+																		e.target.value
+																	)
+																}
+																disabled={!isDraft || updatingHeight}
+															/>
+															{/* Индикатор сохранения */}
+															{isDraft && calc.pvlc_med_formula_id && (
+																<div
+																	style={{
+																		position: 'absolute',
+																		right: '-25px',
+																		top: '50%',
+																		transform: 'translateY(-50%)',
+																		display: 'flex',
+																		alignItems: 'center',
+																	}}
+																>
+																	{updatingHeight ? (
+																		<Spinner
+																			as='span'
+																			animation='border'
+																			size='sm'
+																			style={{ width: '20px', height: '20px' }}
+																		/>
+																	) : savedHeights[calc.pvlc_med_formula_id] ? (
+																		<span
+																			style={{
+																				color: 'green',
+																				fontSize: '20px',
+																			}}
+																		>
+																			✓
+																		</span>
+																	) : (
+																		<span
+																			style={{
+																				color: 'orange',
+																				fontSize: '20px',
+																			}}
+																		>
+																			↻
+																		</span>
+																	)}
+																</div>
+															)}
+														</div>
 													</div>
 													{/* Результат ДЖЕЛ */}
 													<div className='parameter-group'>
@@ -378,7 +507,7 @@ const PvlcMedCardPage: React.FC = () => {
 																	)
 																}
 																title='Удалить из заявки'
-																disabled={deletingCalculation}
+																disabled={deletingCalculation || updatingHeight}
 																style={{
 																	padding: '0.4rem 0.8rem',
 																	marginLeft: '10px',
@@ -424,12 +553,14 @@ const PvlcMedCardPage: React.FC = () => {
 												variant='success'
 												onClick={handleSave}
 												className='btn-calculate'
+												disabled={updatingHeight}
 											>
 												Сохранить
 											</Button>
 											<Button
 												variant='secondary'
 												onClick={() => setEditMode(false)}
+												disabled={updatingHeight}
 											>
 												Отмена
 											</Button>
@@ -439,6 +570,7 @@ const PvlcMedCardPage: React.FC = () => {
 											variant='primary'
 											onClick={() => setEditMode(true)}
 											className='btn-calculate'
+											disabled={updatingHeight}
 										>
 											Редактировать
 										</Button>
@@ -447,6 +579,7 @@ const PvlcMedCardPage: React.FC = () => {
 										variant='warning'
 										onClick={handleFormOrder}
 										className='btn-calculate'
+										disabled={updatingHeight}
 									>
 										Сформировать
 									</Button>
@@ -454,6 +587,7 @@ const PvlcMedCardPage: React.FC = () => {
 										variant='danger'
 										onClick={handleDelete}
 										className='btn-delete'
+										disabled={updatingHeight}
 									>
 										Удалить заявку
 									</Button>
