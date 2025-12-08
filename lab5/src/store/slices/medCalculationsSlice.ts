@@ -29,7 +29,7 @@ export const deleteCalculation = createAsyncThunk(
 	'medCalculations/deleteCalculation',
 	async (
 		request: DsDeleteMedMmPvlcCalculationRequest,
-		{ rejectWithValue } // ИСПРАВЛЕНО: убран неиспользуемый параметр dispatch
+		{ rejectWithValue } //
 	) => {
 		try {
 			await api.api.medMmPvlcCalculationsDelete(request)

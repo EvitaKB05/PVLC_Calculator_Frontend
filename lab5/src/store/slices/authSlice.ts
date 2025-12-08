@@ -117,7 +117,7 @@ export const loginUser = createAsyncThunk(
 	}
 )
 
-// ИСПРАВЛЕНИЕ: Асинхронное действие для выхода с правильным телом запроса
+// Асинхронное действие для выхода
 export const logoutUser = createAsyncThunk(
 	'auth/logoutUser',
 	async (_, { rejectWithValue }) => {
