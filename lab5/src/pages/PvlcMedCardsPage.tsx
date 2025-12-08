@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
 	Container,
 	Table,
@@ -6,12 +6,16 @@ import {
 	Alert,
 	Spinner,
 	Badge,
+	Form,
+	Row,
+	Col,
 } from 'react-bootstrap'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../hooks/redux'
 import { getOrdersList } from '../store/slices/ordersSlice'
 import Breadcrumbs from '../components/Breadcrumbs'
 import type { DsPvlcMedCardResponse } from '../api'
+import type { OrderFilter } from '../types' // ДОБАВЛЕНО: импорт типа фильтра
 
 const PvlcMedCardsPage: React.FC = () => {
 	const dispatch = useAppDispatch()
@@ -20,9 +24,35 @@ const PvlcMedCardsPage: React.FC = () => {
 	const { orders, loading, error } = useAppSelector(state => state.orders)
 	const { isAuthenticated } = useAppSelector(state => state.auth)
 
+	// ДОБАВЛЕНО: состояние фильтров
+	const [filters, setFilters] = useState<OrderFilter>({
+		date_from: '',
+		date_to: '',
+		status: '',
+	})
+
+	// ДОБАВЛЕНО: обработчики изменения фильтров
+	const handleFilterChange = (field: keyof OrderFilter, value: string) => {
+		const newFilters = { ...filters, [field]: value }
+		setFilters(newFilters)
+		// Применяем фильтры при изменении
+		dispatch(getOrdersList(newFilters))
+	}
+
+	// ДОБАВЛЕНО: обработчик сброса фильтров
+	const handleResetFilters = () => {
+		const resetFilters: OrderFilter = {
+			date_from: '',
+			date_to: '',
+			status: '',
+		}
+		setFilters(resetFilters)
+		dispatch(getOrdersList({}))
+	}
+
 	useEffect(() => {
 		if (isAuthenticated) {
-			dispatch(getOrdersList({}))
+			dispatch(getOrdersList(filters)) // ИЗМЕНЕНО: передаем текущие фильтры
 		}
 	}, [dispatch, isAuthenticated])
 
@@ -107,6 +137,69 @@ const PvlcMedCardsPage: React.FC = () => {
 					</Alert>
 				)}
 
+				{/* ДОБАВЛЕНО: Панель фильтров */}
+				<div className='bg-light p-4 rounded mb-4'>
+					<h5 className='mb-3'>Фильтрация заявок</h5>
+					<Form>
+						<Row className='g-3'>
+							<Col md={3}>
+								<Form.Group controlId='filterDateFrom'>
+									<Form.Label>Дата создания</Form.Label>
+									<Form.Control
+										type='date'
+										value={filters.date_from || ''}
+										onChange={e =>
+											handleFilterChange('date_from', e.target.value)
+										}
+										max={filters.date_to || undefined}
+									/>
+								</Form.Group>
+							</Col>
+
+							<Col md={3}>
+								<Form.Group controlId='filterDateTo'>
+									<Form.Label>Дата обновления</Form.Label>
+									<Form.Control
+										type='date'
+										value={filters.date_to || ''}
+										onChange={e =>
+											handleFilterChange('date_to', e.target.value)
+										}
+										min={filters.date_from || undefined}
+									/>
+								</Form.Group>
+							</Col>
+
+							<Col md={3}>
+								<Form.Group controlId='filterStatus'>
+									<Form.Label>Статус</Form.Label>
+									<Form.Select
+										value={filters.status || ''}
+										onChange={e => handleFilterChange('status', e.target.value)}
+									>
+										<option value=''>Все статусы</option>
+										<option value='черновик'>Черновик</option>
+										<option value='сформирован'>Сформирован</option>
+										<option value='завершен'>Завершен</option>
+										<option value='отклонен'>Отклонен</option>
+									</Form.Select>
+								</Form.Group>
+							</Col>
+
+							<Col md={3} className='d-flex align-items-end'>
+								<Button
+									variant='outline-secondary'
+									onClick={handleResetFilters}
+									className='w-100'
+								>
+									Сбросить
+								</Button>
+							</Col>
+						</Row>
+					</Form>
+				</div>
+				{/* КОНЕЦ ДОБАВЛЕНИЯ: Панель фильтров */}
+
 				{loading ? (
 					<div className='text-center py-5'>
 						<Spinner animation='border' role='status'>
@@ -116,8 +209,9 @@ const PvlcMedCardsPage: React.FC = () => {
 					</div>
 				) : orders.length === 0 ? (
 					<Alert variant='info'>
-						У вас пока нет заявок. Создайте первую заявку, добавив формулы на
-						странице категорий.
+						{filters.date_from || filters.date_to || filters.status
+							? 'По указанным фильтрам заявки не найдены'
+							: 'У вас пока нет заявок. Создайте первую заявку, добавив формулы на странице категорий.'}
 					</Alert>
 				) : (
 					<Table striped bordered hover responsive className='mt-4'>

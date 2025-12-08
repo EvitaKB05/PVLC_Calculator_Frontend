@@ -36,4 +36,13 @@ export interface CartIconResponse {
 	med_card_id: number
 	med_item_count: number
 }
+
 // КОНЕЦ НОВЫХ ДОБАВЛЕНИЙ
+
+// НАЧАЛО ДОБАВЛЕНИЙ ДЛЯ ФИЛЬТРАЦИИ ЗАЯВОК
+export interface OrderFilter {
+	date_from?: string // Дата создания "от" (формат YYYY-MM-DD)
+	date_to?: string // Дата создания "до" (формат YYYY-MM-DD)
+	status?: string // Статус заявки
+}
+// КОНЕЦ ДОБАВЛЕНИЙ ДЛЯ ФИЛЬТРАЦИИ ЗАЯВОК
