@@ -14,6 +14,7 @@ const httpClient = new HttpClient({
 // Настраиваем интерцепторы для автоматического добавления JWT токена
 httpClient.instance.interceptors.request.use(
 	(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
+		// ИСПРАВЛЕНИЕ: Используем localStorage для текущей сессии
 		const token = localStorage.getItem('token')
 
 		// Отключаем логи для /api/med_card/icon чтобы не засорять консоль

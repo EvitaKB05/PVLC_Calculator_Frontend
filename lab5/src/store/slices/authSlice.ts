@@ -34,12 +34,13 @@ interface ApiWrappedResponse<T> {
 	data?: T
 }
 
-// ИСПРАВЛЕНО: Добавляем интерфейс для запроса выхода
+// ИСПРАВЛЕНИЕ: Добавляем интерфейс для запроса выхода
 interface LogoutRequestBody {
 	token: string
 }
 
-// Начальное состояние
+// Начальное состояние - ВСЕГДА пустое при загрузке приложения (F5 reset)
+// ИСПРАВЛЕНИЕ: Не восстанавливаем из localStorage при инициализации
 const initialState: AuthState = {
 	user: null,
 	isAuthenticated: false,
@@ -49,20 +50,12 @@ const initialState: AuthState = {
 	passwordChangeError: null,
 }
 
-// Проверяем наличие токена при загрузке
-const token = localStorage.getItem('token')
-if (token) {
-	const userData = localStorage.getItem('user')
-	if (userData) {
-		try {
-			initialState.user = JSON.parse(userData)
-			initialState.isAuthenticated = true
-		} catch (error) {
-			console.error('Ошибка парсинга user из localStorage:', error)
-			localStorage.removeItem('token')
-			localStorage.removeItem('user')
-		}
-	}
+// ИСПРАВЛЕНИЕ: Очищаем localStorage при загрузке приложения для F5 reset
+// Вызывается один раз при загрузке приложения
+if (typeof window !== 'undefined') {
+	localStorage.removeItem('token')
+	localStorage.removeItem('user')
+	console.log('F5 reset: localStorage cleared on app load')
 }
 
 // Асинхронное действие для входа
@@ -97,15 +90,18 @@ export const loginUser = createAsyncThunk(
 			}
 
 			if (token) {
+				// ИСПРАВЛЕНИЕ: Сохраняем токен в localStorage для текущей сессии
+				// Но при следующем F5 он будет очищен
 				localStorage.setItem('token', token)
-				console.log('✅ Token saved to localStorage')
+				console.log('✅ Token saved to localStorage for current session')
 			} else {
 				console.warn('❌ No token found in response.data')
 			}
 
 			if (userData) {
+				// ИСПРАВЛЕНИЕ: Сохраняем пользователя в localStorage для текущей сессии
 				localStorage.setItem('user', JSON.stringify(userData))
-				console.log('✅ User saved to localStorage:', userData)
+				console.log('✅ User saved to localStorage for current session')
 			}
 
 			return userData
@@ -121,7 +117,7 @@ export const loginUser = createAsyncThunk(
 	}
 )
 
-// ИСПРАВЛЕНО: Асинхронное действие для выхода с правильным телом запроса
+// ИСПРАВЛЕНИЕ: Асинхронное действие для выхода с правильным телом запроса
 export const logoutUser = createAsyncThunk(
 	'auth/logoutUser',
 	async (_, { rejectWithValue }) => {
@@ -131,13 +127,12 @@ export const logoutUser = createAsyncThunk(
 			console.log('Logout: token from localStorage:', token ? 'exists' : 'null')
 
 			if (token) {
-				// ИСПРАВЛЕНО: Создаем тело запроса с токеном
+				// ИСПРАВЛЕНИЕ: Создаем тело запроса с токеном
 				const requestBody: LogoutRequestBody = {
 					token: token,
 				}
 
-				// ИСПРАВЛЕНО: Отправляем POST запрос с телом через instance axios
-				// Используем instance из api.http чтобы сохранить все интерцепторы и настройки
+				// ИСПРАВЛЕНИЕ: Отправляем POST запрос с телом через instance axios
 				await api.http.instance.post('/api/auth/logout', requestBody, {
 					headers: {
 						'Content-Type': 'application/json',
@@ -152,14 +147,14 @@ export const logoutUser = createAsyncThunk(
 				console.log('✅ Logout request sent (no token)')
 			}
 
-			// Всегда очищаем localStorage после успешной отправки запроса
+			// Всегда очищаем localStorage при выходе
 			localStorage.removeItem('token')
 			localStorage.removeItem('user')
 
 			console.log('✅ Logout successful, localStorage cleared')
 			return true
 		} catch (error: unknown) {
-			// ИСПРАВЛЕНО: Даже при ошибке API очищаем localStorage
+			// ИСПРАВЛЕНИЕ: Даже при ошибке API очищаем localStorage
 			localStorage.removeItem('token')
 			localStorage.removeItem('user')
 
@@ -169,7 +164,7 @@ export const logoutUser = createAsyncThunk(
 				data: apiError.response?.data,
 			})
 
-			// ИСПРАВЛЕНО: Не возвращаем rejectWithValue для 400/401 ошибок,
+			// ИСПРАВЛЕНИЕ: Не возвращаем rejectWithValue для 400/401 ошибок,
 			// так как localStorage уже очищен и пользователь де-факто вышел
 			if (
 				apiError.response?.status === 400 ||
@@ -214,13 +209,15 @@ export const getProfile = createAsyncThunk(
 
 			console.log('Profile data:', profileData)
 
+			// ИСПРАВЛЕНИЕ: Сохраняем профиль в localStorage для текущей сессии
 			localStorage.setItem('user', JSON.stringify(profileData))
-			console.log('✅ Profile saved to localStorage')
+			console.log('✅ Profile saved to localStorage for current session')
 
 			return profileData
 		} catch (error: unknown) {
 			const apiError = error as ApiError
 			if (apiError.response?.status === 401) {
+				// Очищаем localStorage при 401 ошибке
 				localStorage.removeItem('token')
 				localStorage.removeItem('user')
 				console.log('❌ 401 error, cleared localStorage')
@@ -297,6 +294,13 @@ const authSlice = createSlice({
 			localStorage.removeItem('user')
 			console.log('Force logout executed')
 		},
+		// ИСПРАВЛЕНИЕ: Добавляем ресет для F5
+		resetAuth: () => {
+			localStorage.removeItem('token')
+			localStorage.removeItem('user')
+			console.log('Auth reset for F5')
+			return initialState
+		},
 	},
 	extraReducers: builder => {
 		builder
@@ -322,7 +326,7 @@ const authSlice = createSlice({
 				console.log('Login rejected:', action.payload)
 			})
 
-			// ИСПРАВЛЕНО: Обработка logoutUser
+			// ИСПРАВЛЕНИЕ: Обработка logoutUser
 			.addCase(logoutUser.pending, state => {
 				state.loading = true
 			})
@@ -335,7 +339,7 @@ const authSlice = createSlice({
 			})
 			.addCase(logoutUser.rejected, (state, action) => {
 				state.loading = false
-				// ИСПРАВЛЕНО: Даже при ошибке API, пользователь должен быть разлогинен локально
+				// ИСПРАВЛЕНИЕ: Даже при ошибке API, пользователь должен быть разлогинен локально
 				state.user = null
 				state.isAuthenticated = false
 				state.error = action.payload as string
@@ -397,6 +401,6 @@ const authSlice = createSlice({
 })
 
 // Экспортируем действия и редьюсер
-export const { clearError, clearPasswordChangeError, forceLogout } =
+export const { clearError, clearPasswordChangeError, forceLogout, resetAuth } =
 	authSlice.actions
 export default authSlice.reducer

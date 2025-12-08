@@ -15,40 +15,42 @@ import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../hooks/redux'
 import {
 	getOrdersList,
-	// ИСПРАВЛЕНО: импортируем новые действия
 	setOrdersFilter,
 	resetOrdersFilter,
 } from '../store/slices/ordersSlice'
 import Breadcrumbs from '../components/Breadcrumbs'
 import type { DsPvlcMedCardResponse } from '../api'
-import type { PvlcMedCardFilter } from '../types' // ИСПРАВЛЕНО: добавляем импорт типа
+import type { PvlcMedCardFilter } from '../types'
 
 const PvlcMedCardsPage: React.FC = () => {
 	const dispatch = useAppDispatch()
 	const navigate = useNavigate()
 
-	// ИСПРАВЛЕНО: получаем состояние фильтров из Redux
+	// Получаем состояние фильтров из Redux
 	const { orders, loading, error, filter } = useAppSelector(
 		state => state.orders
 	)
 	const { isAuthenticated } = useAppSelector(state => state.auth)
 
-	// ИСПРАВЛЕНО: таймер для debounce фильтрации (используем number вместо NodeJS.Timeout)
+	// Таймер для debounce фильтрации
 	const [filterTimer, setFilterTimer] = useState<number | null>(null)
 
-	// ИСПРАВЛЕНО: локальное состояние для формы фильтрации
+	// Локальное состояние для формы фильтрации
 	const [localFilter, setLocalFilter] = useState<PvlcMedCardFilter>({
 		date_from: '',
 		updated_date_from: '',
 		status: '',
 	})
 
-	// ИСПРАВЛЕНО: инициализируем локальное состояние при загрузке
+	// Инициализируем локальное состояние при загрузке
 	useEffect(() => {
 		setLocalFilter(filter)
 	}, [filter])
 
-	// ИСПРАВЛЕНО: загружаем заявки с фильтрами
+	// Фильтруем заявки: исключаем черновики из отображения
+	const filteredOrders = orders.filter(order => order.status !== 'черновик')
+
+	// Загружаем заявки с фильтрами
 	useEffect(() => {
 		if (isAuthenticated) {
 			// Преобразуем пустые строки в undefined для API
@@ -59,7 +61,7 @@ const PvlcMedCardsPage: React.FC = () => {
 			}
 			dispatch(getOrdersList(apiParams))
 		}
-	}, [dispatch, isAuthenticated, filter]) // ИСПРАВЛЕНО: добавляем filter в зависимости
+	}, [dispatch, isAuthenticated, filter])
 
 	useEffect(() => {
 		if (!isAuthenticated) {
@@ -67,7 +69,7 @@ const PvlcMedCardsPage: React.FC = () => {
 		}
 	}, [isAuthenticated, navigate])
 
-	// ИСПРАВЛЕНО: обработчик изменения фильтра с debounce
+	// Обработчик изменения фильтра с debounce
 	const handleFilterChange = (
 		field: keyof PvlcMedCardFilter,
 		value: string
@@ -91,7 +93,7 @@ const PvlcMedCardsPage: React.FC = () => {
 		setFilterTimer(timer)
 	}
 
-	// ИСПРАВЛЕНО: обработчик сброса фильтра
+	// Обработчик сброса фильтра
 	const handleResetFilter = () => {
 		dispatch(resetOrdersFilter())
 		setLocalFilter({
@@ -101,7 +103,7 @@ const PvlcMedCardsPage: React.FC = () => {
 		})
 	}
 
-	// ИСПРАВЛЕНО: очищаем таймер при размонтировании
+	// Очищаем таймер при размонтировании
 	useEffect(() => {
 		return () => {
 			if (filterTimer !== null) {
@@ -144,12 +146,12 @@ const PvlcMedCardsPage: React.FC = () => {
 		}
 	}
 
-	// ИСПРАВЛЕНО: Используем created_at напрямую
+	// Используем created_at напрямую
 	const getCreatedDate = (order: DsPvlcMedCardResponse) => {
 		return order.created_at
 	}
 
-	// ИСПРАВЛЕНО: Используем updated_at если есть, иначе другие даты
+	// Используем updated_at если есть, иначе другие даты
 	const getUpdatedDate = (order: DsPvlcMedCardResponse) => {
 		return (
 			order.updated_at ||
@@ -163,10 +165,9 @@ const PvlcMedCardsPage: React.FC = () => {
 		navigate(`/pvlc_med_card/${id}`)
 	}
 
-	// ИСПРАВЛЕНО: список доступных статусов
+	// Список доступных статусов (исключаем черновик из выпадающего списка)
 	const statusOptions = [
 		{ value: '', label: 'Все статусы' },
-		{ value: 'черновик', label: 'Черновик' },
 		{ value: 'сформирован', label: 'Сформирован' },
 		{ value: 'завершен', label: 'Завершен' },
 		{ value: 'отклонен', label: 'Отклонен' },
@@ -188,7 +189,7 @@ const PvlcMedCardsPage: React.FC = () => {
 			</div>
 
 			<Container>
-				{/* ИСПРАВЛЕНО: добавляем панель фильтрации */}
+				{/* Панель фильтрации */}
 				<div className='bg-light p-4 rounded mb-4'>
 					<h5 className='mb-3'>Фильтрация заявок</h5>
 					<Form>
@@ -244,7 +245,6 @@ const PvlcMedCardsPage: React.FC = () => {
 
 						<Row className='mt-3'>
 							<Col className='d-flex gap-2'>
-								{/* ИСПРАВЛЕНО: только кнопка сброса фильтров */}
 								<Button
 									variant='outline-secondary'
 									onClick={handleResetFilter}
@@ -270,16 +270,16 @@ const PvlcMedCardsPage: React.FC = () => {
 						</Spinner>
 						<div className='mt-2'>Загрузка заявок...</div>
 					</div>
-				) : orders.length === 0 ? (
+				) : filteredOrders.length === 0 ? (
 					<Alert variant='info'>
-						{/* ИСПРАВЛЕНО: улучшаем сообщение при активных фильтрах */}
 						{filter.date_from || filter.updated_date_from || filter.status
 							? 'По выбранным фильтрам заявки не найдены. Попробуйте изменить параметры поиска.'
-							: 'У вас пока нет заявок. Создайте первую заявку, добавив формулы на странице категорий.'}
+							: // ИЗМЕНЕНИЕ: уточняем сообщение, что черновики не отображаются
+							  'Заявок нет. Черновики не отображаются в этом списке. Для просмотра черновиков перейдите на страницу деталей заявки.'}
 					</Alert>
 				) : (
 					<>
-						{/* ИСПРАВЛЕНО: показываем информацию о примененных фильтрах */}
+						{/* Информация о примененных фильтрах */}
 						{(filter.date_from ||
 							filter.updated_date_from ||
 							filter.status) && (
@@ -298,6 +298,19 @@ const PvlcMedCardsPage: React.FC = () => {
 							</div>
 						)}
 
+						{/* Информация о скрытых черновиках */}
+						{orders.length > filteredOrders.length && (
+							<Alert variant='light' className='mb-3'>
+								<small>
+									<i>
+										Черновики ({orders.length - filteredOrders.length} шт.) не
+										отображаются в таблице. Черновики можно просмотреть на
+										странице деталей заявки.
+									</i>
+								</small>
+							</Alert>
+						)}
+
 						<Table striped bordered hover responsive className='mt-4'>
 							<thead>
 								<tr>
@@ -312,7 +325,7 @@ const PvlcMedCardsPage: React.FC = () => {
 								</tr>
 							</thead>
 							<tbody>
-								{orders.map(order => (
+								{filteredOrders.map(order => (
 									<tr key={order.id}>
 										<td>{order.id}</td>
 										<td>{order.patient_name || '—'}</td>

@@ -18,16 +18,16 @@ import {
 	formOrder,
 	clearOrdersError,
 	updateCalculationHeight,
-	clearUpdatingHeight,
 } from '../store/slices/ordersSlice'
 import { deleteCalculation } from '../store/slices/medCalculationsSlice'
 import { getCartIcon } from '../store/slices/cartSlice'
 import Breadcrumbs from '../components/Breadcrumbs'
 import { apiService } from '../services/api'
-//import type { DsPvlcMedCardResponse } from '../api'
 
-// Тип для таймера
-type TimerType = ReturnType<typeof setTimeout>
+// Тип для состояния сохранения роста
+interface HeightSaveState {
+	[formulaId: number]: boolean
+}
 
 const PvlcMedCardPage: React.FC = () => {
 	const { id } = useParams<{ id: string }>()
@@ -50,27 +50,18 @@ const PvlcMedCardPage: React.FC = () => {
 		doctor_name: '',
 	})
 
-	// Локальное состояние для роста и таймеров автосохранения
+	// Локальное состояние для роста (убраны таймеры автосохранения)
 	const [heightValues, setHeightValues] = useState<Record<number, number>>({})
-	const [heightTimers, setHeightTimers] = useState<Record<number, TimerType>>(
-		{}
-	)
-	const [savedHeights, setSavedHeights] = useState<Record<number, boolean>>({})
+	const [heightSaved, setHeightSaved] = useState<HeightSaveState>({})
 
 	// Загружаем данные заявки при монтировании
 	useEffect(() => {
 		if (id && isAuthenticated) {
 			dispatch(getOrderDetail(parseInt(id)))
 		}
-
-		// Очищаем таймеры при размонтировании
-		return () => {
-			Object.values(heightTimers).forEach(timer => clearTimeout(timer))
-			dispatch(clearUpdatingHeight())
-		}
 	}, [dispatch, id, isAuthenticated])
 
-	// ИСПРАВЛЕНО: Синхронизация формы с данными из Redux
+	// Синхронизация формы с данными из Redux
 	useEffect(() => {
 		if (currentOrder) {
 			// Обновляем форму данными из текущей заявки
@@ -81,7 +72,7 @@ const PvlcMedCardPage: React.FC = () => {
 
 			// Инициализируем значения роста из расчетов
 			const initialHeights: Record<number, number> = {}
-			const initialSaved: Record<number, boolean> = {}
+			const initialSaved: HeightSaveState = {}
 			if (currentOrder.med_calculations) {
 				currentOrder.med_calculations.forEach(calc => {
 					if (calc.pvlc_med_formula_id && calc.input_height) {
@@ -91,9 +82,9 @@ const PvlcMedCardPage: React.FC = () => {
 				})
 			}
 			setHeightValues(initialHeights)
-			setSavedHeights(initialSaved)
+			setHeightSaved(initialSaved)
 		}
-	}, [currentOrder]) // ИСПРАВЛЕНО: Зависимость от currentOrder
+	}, [currentOrder])
 
 	// Если пользователь не авторизован, перенаправляем на вход
 	useEffect(() => {
@@ -126,31 +117,22 @@ const PvlcMedCardPage: React.FC = () => {
 			[formulaId]: numValue,
 		})
 
-		// Сбрасываем статус сохранения
-		setSavedHeights({
-			...savedHeights,
+		// Сбрасываем статус сохранения при изменении значения
+		setHeightSaved({
+			...heightSaved,
 			[formulaId]: false,
-		})
-
-		// Очищаем предыдущий таймер
-		if (heightTimers[formulaId]) {
-			clearTimeout(heightTimers[formulaId])
-		}
-
-		// Создаем новый таймер для автосохранения через 1 секунду
-		const timer = setTimeout(() => {
-			saveHeight(formulaId, numValue)
-		}, 1000)
-
-		setHeightTimers({
-			...heightTimers,
-			[formulaId]: timer,
 		})
 	}
 
-	// Функция сохранения роста в БД
-	const saveHeight = async (formulaId: number, height: number) => {
-		if (!id || !currentOrder?.id || height <= 0) return
+	// Функция ручного сохранения роста
+	const handleSaveHeight = async (formulaId: number) => {
+		if (!id || !currentOrder?.id) return
+
+		const height = heightValues[formulaId]
+		if (!height || height <= 0) {
+			alert('Введите корректное значение роста (больше 0)')
+			return
+		}
 
 		try {
 			await dispatch(
@@ -162,16 +144,19 @@ const PvlcMedCardPage: React.FC = () => {
 			).unwrap()
 
 			// Помечаем как сохраненное
-			setSavedHeights({
-				...savedHeights,
+			setHeightSaved({
+				...heightSaved,
 				[formulaId]: true,
 			})
+
+			console.log(`Рост для формулы ${formulaId} сохранен`)
 		} catch (error) {
 			console.error('Ошибка сохранения роста:', error)
+			alert('Ошибка при сохранении роста')
 		}
 	}
 
-	// ИСПРАВЛЕНО: Функция сохранения данных заявки
+	// Функция сохранения данных заявки
 	const handleSave = async () => {
 		if (id) {
 			try {
@@ -187,16 +172,16 @@ const PvlcMedCardPage: React.FC = () => {
 				// Выходим из режима редактирования
 				setEditMode(false)
 
-				// ИСПРАВЛЕНО: Обновляем данные заявки после сохранения
+				// Обновляем данные заявки после сохранения
 				dispatch(getOrderDetail(parseInt(id)))
 			} catch (error) {
 				console.error('Ошибка сохранения заявки:', error)
-				// Можно показать ошибку пользователю
+				alert('Ошибка сохранения заявки')
 			}
 		}
 	}
 
-	// ИСПРАВЛЕНО: Функция отмены редактирования
+	// Функция отмены редактирования
 	const handleCancel = () => {
 		// Восстанавливаем исходные данные из currentOrder
 		if (currentOrder) {
@@ -249,6 +234,7 @@ const PvlcMedCardPage: React.FC = () => {
 				}
 			} catch (error) {
 				console.error('Ошибка удаления формулы:', error)
+				alert('Ошибка удаления формулы')
 			}
 		}
 	}
@@ -412,7 +398,6 @@ const PvlcMedCardPage: React.FC = () => {
 												disabled={!isDraft}
 											/>
 										) : (
-											// ИСПРАВЛЕНО: Отображаем данные из formData, а не из currentOrder
 											<div>{formData.patient_name || '-'}</div>
 										)}
 									</Form.Group>
@@ -430,10 +415,10 @@ const PvlcMedCardPage: React.FC = () => {
 												disabled={!isDraft}
 											/>
 										) : (
-											// ИСПРАВЛЕНО: Отображаем данные из formData, а не из currentOrder
 											<div>{formData.doctor_name || '-'}</div>
 										)}
-									</Form.Group>
+									</Form.Group>{' '}
+									{/* ИСПРАВЛЕНИЕ: Закрывающий тег должен быть </Form.Group> */}
 								</Col>
 							</Row>
 						</div>
@@ -461,71 +446,66 @@ const PvlcMedCardPage: React.FC = () => {
 										<div className='category-info'>
 											<div className='category-details'>
 												<div className='parameters-row'>
-													{/* Поле для ввода роста с индикатором сохранения */}
+													{/* Поле для ввода роста с кнопкой сохранения */}
 													<div className='parameter-group'>
 														<span className='parameter-label'>Рост:</span>
-														<div style={{ position: 'relative' }}>
-															<input
-																type='number'
-																className='height-input'
-																placeholder='см'
-																min='50'
-																max='250'
-																value={
-																	heightValues[calc.pvlc_med_formula_id!] || ''
+														<input
+															type='number'
+															className='height-input'
+															placeholder='см'
+															min='50'
+															max='250'
+															value={
+																heightValues[calc.pvlc_med_formula_id!] || ''
+															}
+															onChange={e =>
+																handleHeightChange(
+																	calc.pvlc_med_formula_id!,
+																	e.target.value
+																)
+															}
+															disabled={!isDraft || updatingHeight}
+															style={{ marginRight: '10px' }}
+														/>
+														{/* Кнопка сохранения роста - ИЗМЕНЕНИЕ: добавлена кнопка с галочкой */}
+														{isDraft && calc.pvlc_med_formula_id && (
+															<button
+																type='button'
+																className={`btn btn-${
+																	heightSaved[calc.pvlc_med_formula_id]
+																		? 'success'
+																		: 'outline-primary'
+																} btn-sm`}
+																onClick={() =>
+																	handleSaveHeight(calc.pvlc_med_formula_id!)
 																}
-																onChange={e =>
-																	handleHeightChange(
-																		calc.pvlc_med_formula_id!,
-																		e.target.value
-																	)
+																disabled={updatingHeight}
+																title={
+																	heightSaved[calc.pvlc_med_formula_id]
+																		? 'Сохранено'
+																		: 'Сохранить рост'
 																}
-																disabled={!isDraft || updatingHeight}
-															/>
-															{/* Индикатор сохранения */}
-															{isDraft && calc.pvlc_med_formula_id && (
-																<div
-																	style={{
-																		position: 'absolute',
-																		right: '-25px',
-																		top: '50%',
-																		transform: 'translateY(-50%)',
-																		display: 'flex',
-																		alignItems: 'center',
-																	}}
-																>
-																	{updatingHeight ? (
-																		<Spinner
-																			as='span'
-																			animation='border'
-																			size='sm'
-																			style={{
-																				width: '20px',
-																				height: '20px',
-																			}}
-																		/>
-																	) : savedHeights[calc.pvlc_med_formula_id] ? (
-																		<span
-																			style={{
-																				color: 'green',
-																				fontSize: '20px',
-																			}}
-																		>
-																			✓
-																		</span>
-																	) : (
-																		<span
-																			style={{
-																				color: 'orange',
-																				fontSize: '20px',
-																			}}
-																		>
-																			↻
-																		</span>
-																	)}
-																</div>
-															)}
-														</div>
+																style={{
+																	padding: '0.4rem 0.6rem',
+																	minWidth: '40px',
+																	display: 'flex',
+																	alignItems: 'center',
+																	justifyContent: 'center',
+																}}
+															>
+																{updatingHeight ? (
+																	<Spinner
+																		as='span'
+																		animation='border'
+																		size='sm'
+																	/>
+																) : heightSaved[calc.pvlc_med_formula_id] ? (
+																	<span style={{ fontSize: '16px' }}>✓</span>
+																) : (
+																	<span style={{ fontSize: '16px' }}>✓</span>
+																)}
+															</button>
+														)}
 													</div>
 													{/* Результат ДЖЕЛ */}
 													<div className='parameter-group'>
@@ -607,7 +587,6 @@ const PvlcMedCardPage: React.FC = () => {
 											>
 												Сохранить
 											</Button>
-											{/* ИСПРАВЛЕНО: Используем handleCancel вместо setEditMode(false) */}
 											<Button
 												variant='secondary'
 												onClick={handleCancel}

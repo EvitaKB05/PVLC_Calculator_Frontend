@@ -1,12 +1,13 @@
 //src/App.tsx
-import React from 'react'
+import React, { useEffect } from 'react'
 import { HashRouter as Router, Routes, Route } from 'react-router-dom'
 import { Container } from 'react-bootstrap'
+import { useAppDispatch } from './hooks/redux'
+import { resetAuth } from './store/slices/authSlice'
 import CustomNavbar from './components/Navbar'
 import HomePage from './pages/HomePage'
 import PvlcPatientsPage from './pages/PvlcPatientsPage'
 import PvlcPatientPage from './pages/PvlcPatientPage'
-// ИМПОРТИРУЕМ НОВЫЕ СТРАНИЦЫ
 import PvlcLoginPage from './pages/PvlcLoginPage'
 import PvlcRegisterPage from './pages/PvlcRegisterPage'
 import PvlcProfilePage from './pages/PvlcProfilePage'
@@ -16,6 +17,13 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import './App.css'
 
 const App: React.FC = () => {
+	const dispatch = useAppDispatch()
+
+	// ИСПРАВЛЕНИЕ: Сбрасываем аутентификацию при загрузке приложения (F5 reset)
+	useEffect(() => {
+		dispatch(resetAuth())
+	}, [dispatch])
+
 	return (
 		<Router>
 			<div className='App'>
