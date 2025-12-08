@@ -20,6 +20,14 @@ export interface PvlcMedFormulaFilter {
 	active?: boolean
 }
 
+// НАЧАЛО ДОБАВЛЕНИЯ - интерфейс для фильтра заявок
+export interface PvlcMedCardFilter {
+	date_from?: string
+	updated_date_from?: string
+	status?: string
+}
+// КОНЕЦ ДОБАВЛЕНИЯ
+
 export interface BreadcrumbItem {
 	label: string
 	path?: string
@@ -36,13 +44,4 @@ export interface CartIconResponse {
 	med_card_id: number
 	med_item_count: number
 }
-
 // КОНЕЦ НОВЫХ ДОБАВЛЕНИЙ
-
-// НАЧАЛО ДОБАВЛЕНИЙ ДЛЯ ФИЛЬТРАЦИИ ЗАЯВОК
-export interface OrderFilter {
-	date_from?: string // Дата создания "от" (формат YYYY-MM-DD)
-	date_to?: string // Дата создания "до" (формат YYYY-MM-DD)
-	status?: string // Статус заявки
-}
-// КОНЕЦ ДОБАВЛЕНИЙ ДЛЯ ФИЛЬТРАЦИИ ЗАЯВОК

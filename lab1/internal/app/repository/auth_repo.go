@@ -21,7 +21,13 @@ func (r *Repository) GetPvlcMedCardsByUserID(userID uint, filter ds.PvlcMedCardF
 	if filter.DateTo != "" {
 		query = query.Where("created_at <= ?", filter.DateTo)
 	}
-
+	// ДОБАВИТЬ фильтрацию по updated_at
+	if filter.UpdatedDateFrom != "" {
+		query = query.Where("updated_at >= ?", filter.UpdatedDateFrom)
+	}
+	if filter.UpdatedDateTo != "" {
+		query = query.Where("updated_at <= ?", filter.UpdatedDateTo)
+	}
 	err := query.Preload("Moderator").Find(&cards).Error
 
 	// ИСПРАВЛЕНО: гарантируем возврат пустого массива вместо nil

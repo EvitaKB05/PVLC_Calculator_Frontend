@@ -151,12 +151,16 @@ export interface PvlcMedCardsFormUpdateParams {
 }
 
 export interface PvlcMedCardsListParams {
-  /** Фильтр по дате от */
+  /** Фильтр по дате создания от (YYYY-MM-DD) */
   date_from?: string;
-  /** Фильтр по дате до */
+  /** Фильтр по дате создания до (YYYY-MM-DD) */
   date_to?: string;
   /** Фильтр по статусу */
   status?: string;
+  /** Фильтр по дате обновления от (YYYY-MM-DD) */
+  updated_date_from?: string;
+  /** Фильтр по дате обновления до (YYYY-MM-DD) */
+  updated_date_to?: string;
 }
 
 export interface PvlcMedCardsUpdateParams {
@@ -522,12 +526,16 @@ export namespace Api {
   export namespace PvlcMedCardsList {
     export type RequestParams = {};
     export type RequestQuery = {
-      /** Фильтр по дате от */
+      /** Фильтр по дате создания от (YYYY-MM-DD) */
       date_from?: string;
-      /** Фильтр по дате до */
+      /** Фильтр по дате создания до (YYYY-MM-DD) */
       date_to?: string;
       /** Фильтр по статусу */
       status?: string;
+      /** Фильтр по дате обновления от (YYYY-MM-DD) */
+      updated_date_from?: string;
+      /** Фильтр по дате обновления до (YYYY-MM-DD) */
+      updated_date_to?: string;
     };
     export type RequestBody = never;
     export type RequestHeaders = {};

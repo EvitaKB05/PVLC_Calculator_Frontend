@@ -7,6 +7,8 @@ import {
 	type DsUpdatePvlcMedCardRequest,
 	type DsUpdateMedMmPvlcCalculationAPIRequest,
 } from '../../api'
+// ИСПРАВЛЕНО: добавляем импорт типа для фильтра
+import type { PvlcMedCardFilter } from '../../types'
 
 // Интерфейс состояния заявок
 interface OrdersState {
@@ -15,6 +17,8 @@ interface OrdersState {
 	loading: boolean
 	updatingHeight: boolean
 	error: string | null
+	// ИСПРАВЛЕНО: добавляем состояние фильтров
+	filter: PvlcMedCardFilter
 }
 
 // Тип для ошибки API
@@ -36,6 +40,9 @@ interface OrdersListParams {
 	date_from?: string
 	date_to?: string
 	status?: string
+	// ИСПРАВЛЕНО: добавляем параметр updated_date_from
+	updated_date_from?: string
+	updated_date_to?: string
 }
 
 // Начальное состояние
@@ -45,9 +52,16 @@ const initialState: OrdersState = {
 	loading: false,
 	updatingHeight: false,
 	error: null,
+	// ИСПРАВЛЕНО: добавляем начальное состояние фильтров
+	filter: {
+		date_from: '',
+		updated_date_from: '',
+		status: '',
+	},
 }
 
 // Асинхронное действие для получения списка заявок
+// ИСПРАВЛЕНО: принимаем параметры фильтра
 export const getOrdersList = createAsyncThunk(
 	'orders/getOrdersList',
 	async (params: OrdersListParams = {}, { rejectWithValue }) => {
@@ -217,6 +231,14 @@ const ordersSlice = createSlice({
 		clearUpdatingHeight: state => {
 			state.updatingHeight = false
 		},
+		// ИСПРАВЛЕНО: добавляем редьюсер для установки фильтра
+		setOrdersFilter: (state, action: PayloadAction<PvlcMedCardFilter>) => {
+			state.filter = { ...state.filter, ...action.payload }
+		},
+		// ИСПРАВЛЕНО: добавляем редьюсер для сброса фильтров
+		resetOrdersFilter: state => {
+			state.filter = initialState.filter
+		},
 	},
 	extraReducers: builder => {
 		builder
@@ -362,6 +384,12 @@ const ordersSlice = createSlice({
 })
 
 // Экспортируем действия и редьюсер
-export const { clearOrdersError, clearCurrentOrder, clearUpdatingHeight } =
-	ordersSlice.actions
+export const {
+	clearOrdersError,
+	clearCurrentOrder,
+	clearUpdatingHeight,
+	// ИСПРАВЛЕНО: экспортируем новые действия
+	setOrdersFilter,
+	resetOrdersFilter,
+} = ordersSlice.actions
 export default ordersSlice.reducer

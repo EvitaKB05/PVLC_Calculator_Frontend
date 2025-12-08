@@ -615,14 +615,26 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Фильтр по дате от",
+                        "description": "Фильтр по дате создания от (YYYY-MM-DD)",
                         "name": "date_from",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Фильтр по дате до",
+                        "description": "Фильтр по дате создания до (YYYY-MM-DD)",
                         "name": "date_to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по дате обновления от (YYYY-MM-DD)",
+                        "name": "updated_date_from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по дате обновления до (YYYY-MM-DD)",
+                        "name": "updated_date_to",
                         "in": "query"
                     }
                 ],

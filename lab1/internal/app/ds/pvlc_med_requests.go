@@ -24,9 +24,11 @@ type UpdatePvlcMedFormulaRequest struct {
 }
 
 type PvlcMedCardFilter struct {
-	Status   string `form:"status"`
-	DateFrom string `form:"date_from"`
-	DateTo   string `form:"date_to"`
+	Status          string `form:"status"`
+	DateFrom        string `form:"date_from"`         // для created_at
+	DateTo          string `form:"date_to"`           // для created_at
+	UpdatedDateFrom string `form:"updated_date_from"` // для updated_at
+	UpdatedDateTo   string `form:"updated_date_to"`   // для updated_at
 }
 
 type PvlcMedFormulaFilter struct {

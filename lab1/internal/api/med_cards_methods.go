@@ -64,8 +64,10 @@ func (a *API) GetCartIcon(c *gin.Context) {
 // @Tags medical-cards
 // @Produce json
 // @Param status query string false "Фильтр по статусу"
-// @Param date_from query string false "Фильтр по дате от"
-// @Param date_to query string false "Фильтр по дате до"
+// @Param date_from query string false "Фильтр по дате создания от (YYYY-MM-DD)"
+// @Param date_to query string false "Фильтр по дате создания до (YYYY-MM-DD)"
+// @Param updated_date_from query string false "Фильтр по дате обновления от (YYYY-MM-DD)"
+// @Param updated_date_to query string false "Фильтр по дате обновления до (YYYY-MM-DD)"
 // @Success 200 {array} ds.PvlcMedCardResponse
 // @Failure 401 {object} map[string]string
 // @Router /api/pvlc-med-cards [get]
@@ -83,7 +85,16 @@ func (a *API) GetPvlcMedCards(c *gin.Context) {
 		a.errorResponse(c, http.StatusBadRequest, "Неверные параметры фильтрации")
 		return
 	}
-
+	// ДОБАВИТЬ ЛОГИРОВАНИЕ
+	logrus.WithFields(logrus.Fields{
+		"user_id":           claims.UserID,
+		"is_moderator":      claims.IsModerator,
+		"date_from":         filter.DateFrom,
+		"date_to":           filter.DateTo,
+		"updated_date_from": filter.UpdatedDateFrom,
+		"updated_date_to":   filter.UpdatedDateTo,
+		"status":            filter.Status,
+	}).Info("Получение заявок с фильтрами")
 	var cards []ds.PvlcMedCard
 	var err error
 
