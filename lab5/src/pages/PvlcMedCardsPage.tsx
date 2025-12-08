@@ -32,6 +32,9 @@ const PvlcMedCardsPage: React.FC = () => {
 	)
 	const { isAuthenticated } = useAppSelector(state => state.auth)
 
+	// ИСПРАВЛЕНО: таймер для debounce фильтрации (используем number вместо NodeJS.Timeout)
+	const [filterTimer, setFilterTimer] = useState<number | null>(null)
+
 	// ИСПРАВЛЕНО: локальное состояние для формы фильтрации
 	const [localFilter, setLocalFilter] = useState<PvlcMedCardFilter>({
 		date_from: '',
@@ -63,20 +66,28 @@ const PvlcMedCardsPage: React.FC = () => {
 		}
 	}, [isAuthenticated, navigate])
 
-	// ИСПРАВЛЕНО: обработчик изменения фильтра
+	// ИСПРАВЛЕНО: обработчик изменения фильтра с debounce
 	const handleFilterChange = (
 		field: keyof PvlcMedCardFilter,
 		value: string
 	) => {
-		setLocalFilter({
+		const newFilter = {
 			...localFilter,
 			[field]: value,
-		})
-	}
+		}
+		setLocalFilter(newFilter)
 
-	// ИСПРАВЛЕНО: обработчик применения фильтра
-	const handleApplyFilter = () => {
-		dispatch(setOrdersFilter(localFilter))
+		// Очищаем предыдущий таймер
+		if (filterTimer !== null) {
+			clearTimeout(filterTimer)
+		}
+
+		// Устанавливаем новый таймер для debounce (500ms)
+		const timer = window.setTimeout(() => {
+			dispatch(setOrdersFilter(newFilter))
+		}, 500)
+
+		setFilterTimer(timer)
 	}
 
 	// ИСПРАВЛЕНО: обработчик сброса фильтра
@@ -88,6 +99,15 @@ const PvlcMedCardsPage: React.FC = () => {
 			status: '',
 		})
 	}
+
+	// ИСПРАВЛЕНО: очищаем таймер при размонтировании
+	useEffect(() => {
+		return () => {
+			if (filterTimer !== null) {
+				clearTimeout(filterTimer)
+			}
+		}
+	}, [filterTimer])
 
 	const getStatusColor = (status: string) => {
 		switch (status) {
@@ -174,7 +194,7 @@ const PvlcMedCardsPage: React.FC = () => {
 						<Row className='g-3'>
 							<Col md={4}>
 								<Form.Group>
-									<Form.Label>Дата создания от</Form.Label>
+									<Form.Label>Дата создания</Form.Label>
 									<Form.Control
 										type='date'
 										value={localFilter.date_from || ''}
@@ -190,7 +210,7 @@ const PvlcMedCardsPage: React.FC = () => {
 
 							<Col md={4}>
 								<Form.Group>
-									<Form.Label>Дата оформления от</Form.Label>
+									<Form.Label>Дата обновления</Form.Label>
 									<Form.Control
 										type='date'
 										value={localFilter.updated_date_from || ''}
@@ -223,13 +243,7 @@ const PvlcMedCardsPage: React.FC = () => {
 
 						<Row className='mt-3'>
 							<Col className='d-flex gap-2'>
-								<Button
-									variant='primary'
-									onClick={handleApplyFilter}
-									disabled={loading}
-								>
-									Применить фильтр
-								</Button>
+								{/* ИСПРАВЛЕНО: только кнопка сброса фильтров */}
 								<Button
 									variant='outline-secondary'
 									onClick={handleResetFilter}

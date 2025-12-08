@@ -7,7 +7,7 @@ import {
 	type DsMedUserResponse,
 	type DsMedUserRegistrationRequest,
 	type ApiLoginResponse,
-	type DsUpdateMedUserRequest, // ИСПРАВЛЕНО: добавляем импорт типа
+	type DsUpdateMedUserRequest,
 } from '../../api'
 
 // Интерфейс состояния аутентификации
@@ -16,8 +16,8 @@ interface AuthState {
 	isAuthenticated: boolean
 	loading: boolean
 	error: string | null
-	passwordChanging: boolean // ИСПРАВЛЕНО: добавляем состояние смены пароля
-	passwordChangeError: string | null // ИСПРАВЛЕНО: добавляем ошибку смены пароля
+	passwordChanging: boolean
+	passwordChangeError: string | null
 }
 
 // Тип для ошибки API
@@ -34,14 +34,19 @@ interface ApiWrappedResponse<T> {
 	data?: T
 }
 
+// ИСПРАВЛЕНО: Добавляем интерфейс для запроса выхода
+interface LogoutRequestBody {
+	token: string
+}
+
 // Начальное состояние
 const initialState: AuthState = {
 	user: null,
 	isAuthenticated: false,
 	loading: false,
 	error: null,
-	passwordChanging: false, // ИСПРАВЛЕНО: инициализация
-	passwordChangeError: null, // ИСПРАВЛЕНО: инициализация
+	passwordChanging: false,
+	passwordChangeError: null,
 }
 
 // Проверяем наличие токена при загрузке
@@ -116,27 +121,69 @@ export const loginUser = createAsyncThunk(
 	}
 )
 
-// Асинхронное действие для выхода
+// ИСПРАВЛЕНО: Асинхронное действие для выхода с правильным телом запроса
 export const logoutUser = createAsyncThunk(
 	'auth/logoutUser',
 	async (_, { rejectWithValue }) => {
 		try {
-			await api.api.authLogoutCreate()
+			const token = localStorage.getItem('token')
 
+			console.log('Logout: token from localStorage:', token ? 'exists' : 'null')
+
+			if (token) {
+				// ИСПРАВЛЕНО: Создаем тело запроса с токеном
+				const requestBody: LogoutRequestBody = {
+					token: token,
+				}
+
+				// ИСПРАВЛЕНО: Отправляем POST запрос с телом через instance axios
+				// Используем instance из api.http чтобы сохранить все интерцепторы и настройки
+				await api.http.instance.post('/api/auth/logout', requestBody, {
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${token}`,
+					},
+				})
+
+				console.log('✅ Logout request sent successfully')
+			} else {
+				// Если токена нет, просто отправляем запрос без тела
+				await api.api.authLogoutCreate()
+				console.log('✅ Logout request sent (no token)')
+			}
+
+			// Всегда очищаем localStorage после успешной отправки запроса
 			localStorage.removeItem('token')
 			localStorage.removeItem('user')
 
 			console.log('✅ Logout successful, localStorage cleared')
 			return true
 		} catch (error: unknown) {
+			// ИСПРАВЛЕНО: Даже при ошибке API очищаем localStorage
 			localStorage.removeItem('token')
 			localStorage.removeItem('user')
+
 			const apiError = error as ApiError
-			console.error('Logout error, but cleared localStorage:', apiError)
+			console.error('Logout API error, but cleared localStorage:', {
+				status: apiError.response?.status,
+				data: apiError.response?.data,
+			})
+
+			// ИСПРАВЛЕНО: Не возвращаем rejectWithValue для 400/401 ошибок,
+			// так как localStorage уже очищен и пользователь де-факто вышел
+			if (
+				apiError.response?.status === 400 ||
+				apiError.response?.status === 401
+			) {
+				console.log('Logout completed (user is logged out)')
+				return true
+			}
+
+			// Для других ошибок возвращаем reject
 			return rejectWithValue(
 				typeof apiError.response?.data === 'string'
 					? apiError.response.data
-					: 'Ошибка выхода'
+					: 'Ошибка выхода из системы'
 			)
 		}
 	}
@@ -208,7 +255,7 @@ export const registerUser = createAsyncThunk(
 	}
 )
 
-// ИСПРАВЛЕНО: Асинхронное действие для смены пароля
+// Асинхронное действие для смены пароля
 export const changePassword = createAsyncThunk(
 	'auth/changePassword',
 	async (passwordData: DsUpdateMedUserRequest, { rejectWithValue }) => {
@@ -238,7 +285,7 @@ const authSlice = createSlice({
 		clearError: state => {
 			state.error = null
 		},
-		// ИСПРАВЛЕНО: Редьюсер для очистки ошибки смены пароля
+		// Редьюсер для очистки ошибки смены пароля
 		clearPasswordChangeError: state => {
 			state.passwordChangeError = null
 		},
@@ -275,7 +322,7 @@ const authSlice = createSlice({
 				console.log('Login rejected:', action.payload)
 			})
 
-			// Обработка logoutUser
+			// ИСПРАВЛЕНО: Обработка logoutUser
 			.addCase(logoutUser.pending, state => {
 				state.loading = true
 			})
@@ -284,14 +331,15 @@ const authSlice = createSlice({
 				state.user = null
 				state.isAuthenticated = false
 				state.error = null
-				console.log('Logout fulfilled')
+				console.log('Logout fulfilled - user logged out')
 			})
 			.addCase(logoutUser.rejected, (state, action) => {
 				state.loading = false
+				// ИСПРАВЛЕНО: Даже при ошибке API, пользователь должен быть разлогинен локально
 				state.user = null
 				state.isAuthenticated = false
 				state.error = action.payload as string
-				console.log('Logout rejected but state cleared')
+				console.log('Logout rejected but user logged out locally')
 			})
 
 			// Обработка getProfile
@@ -330,7 +378,7 @@ const authSlice = createSlice({
 				console.log('RegisterUser rejected:', action.payload)
 			})
 
-			// ИСПРАВЛЕНО: Обработка changePassword
+			// Обработка changePassword
 			.addCase(changePassword.pending, state => {
 				state.passwordChanging = true
 				state.passwordChangeError = null
