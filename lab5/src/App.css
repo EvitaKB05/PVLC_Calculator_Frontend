@@ -1045,3 +1045,69 @@ body {
 		height: 40px;
 	}
 }
+/* ============ КЛИКАБЕЛЬНЫЕ СТРОКИ ТАБЛИЦЫ ============ */
+
+/* Таблица с кликабельными строками */
+.table.clickable-rows {
+	border-collapse: separate;
+	border-spacing: 0;
+}
+
+/* Строки таблицы с эффектом при наведении */
+.clickable-row {
+	transition: all 0.2s ease;
+	position: relative;
+}
+
+/* Эффект при наведении на строку */
+.clickable-row:hover {
+	background-color: rgba(0, 166, 202, 0.05) !important;
+	transform: translateY(-1px);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Эффект при наведении на строку в таблице с полосами */
+.table-striped .clickable-row:hover {
+	background-color: rgba(0, 166, 202, 0.08) !important;
+}
+
+/* Эффект при наведении на строку в таблице с акцентом при наведении */
+.table-hover .clickable-row:hover {
+	background-color: rgba(0, 166, 202, 0.1) !important;
+}
+
+/* Анимация при клике на строку */
+.clickable-row:active {
+	transform: translateY(0);
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Убираем стандартный ховер Bootstrap для кликабельных строк */
+.table-hover tbody tr.clickable-row:hover {
+	--bs-table-accent-bg: transparent;
+}
+
+/* Кнопки в кликабельных строках - дополнительный z-index чтобы были поверх */
+.clickable-row td:last-child {
+	position: relative;
+	z-index: 1;
+}
+
+/* Эффект для кнопки в строке при наведении на строку */
+.clickable-row:hover .btn-outline-primary {
+	background-color: #00a6ca;
+	color: white;
+	border-color: #00a6ca;
+}
+
+/* Стиль для disabled строк (если понадобится в будущем) */
+.clickable-row.disabled {
+	cursor: not-allowed;
+	opacity: 0.6;
+}
+
+.clickable-row.disabled:hover {
+	background-color: inherit !important;
+	transform: none;
+	box-shadow: none;
+}

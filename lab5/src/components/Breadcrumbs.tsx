@@ -23,6 +23,30 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
 		navigate('/pvlc_patients')
 	}
 
+	// ИСПРАВЛЕНИЕ: Добавляем обработчик для всех ссылок кроме текущей страницы
+	const handleBreadcrumbClick = (
+		e: React.MouseEvent,
+		item: BreadcrumbItem,
+		index: number,
+		totalItems: number
+	) => {
+		// Если это не последний элемент (не активный)
+		if (index < totalItems - 1) {
+			// И если это ссылка на "Мои заявки"
+			if (item.path === '/pvlc_med_cards') {
+				// При переходе на "Мои заявки" сбрасываем фильтры
+				// Это происходит автоматически через useEffect размонтирования в PvlcMedCardsPage
+				console.log('Transition to My Orders - filters will be reset')
+			}
+
+			// Для ссылки "Категории пациентов" вызываем специальный обработчик
+			if (item.path === '/pvlc_patients' && onPatientsClick) {
+				handlePatientsClick(e)
+				return
+			}
+		}
+	}
+
 	return (
 		<Breadcrumb className='mb-4'>
 			<Breadcrumb.Item linkAs={Link} linkProps={{ to: '/pvlc_home_page' }}>
@@ -36,10 +60,14 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
 						item.path
 							? {
 									to: item.path,
-									onClick:
-										item.path === '/pvlc_patients'
-											? handlePatientsClick
-											: undefined,
+									onClick: (e: React.MouseEvent) => {
+										// ИСПРАВЛЕНИЕ: Используем общий обработчик
+										if (item.path === '/pvlc_patients') {
+											handlePatientsClick(e)
+										} else {
+											handleBreadcrumbClick(e, item, index, items.length)
+										}
+									},
 							  }
 							: undefined
 					}

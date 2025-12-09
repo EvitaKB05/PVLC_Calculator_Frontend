@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import {
 	Container,
 	Table,
-	Button,
+	// Button,
 	Alert,
 	Spinner,
 	Badge,
@@ -63,6 +63,21 @@ const PvlcMedCardsPage: React.FC = () => {
 		}
 	}, [dispatch, isAuthenticated, filter])
 
+	// ИСПРАВЛЕНИЕ: Сбрасываем фильтры при уходе со страницы
+	useEffect(() => {
+		return () => {
+			// Этот эффект выполняется при размонтировании компонента
+			// (когда пользователь уходит с этой страницы)
+			console.log('PvlcMedCardsPage unmounting, resetting filters...')
+			dispatch(resetOrdersFilter())
+
+			// Очищаем таймер если он есть
+			if (filterTimer !== null) {
+				clearTimeout(filterTimer)
+			}
+		}
+	}, [dispatch, filterTimer])
+
 	useEffect(() => {
 		if (!isAuthenticated) {
 			navigate('/pvlc_login')
@@ -93,15 +108,15 @@ const PvlcMedCardsPage: React.FC = () => {
 		setFilterTimer(timer)
 	}
 
-	// Обработчик сброса фильтра
-	const handleResetFilter = () => {
-		dispatch(resetOrdersFilter())
-		setLocalFilter({
-			date_from: '',
-			updated_date_from: '',
-			status: '',
-		})
-	}
+	// // Обработчик сброса фильтра
+	// const handleResetFilter = () => {
+	// 	dispatch(resetOrdersFilter())
+	// 	setLocalFilter({
+	// 		date_from: '',
+	// 		updated_date_from: '',
+	// 		status: '',
+	// 	})
+	// }
 
 	// Очищаем таймер при размонтировании
 	useEffect(() => {
@@ -161,11 +176,27 @@ const PvlcMedCardsPage: React.FC = () => {
 		)
 	}
 
-	const handleOrderClick = (id: number) => {
-		navigate(`/pvlc_med_card/${id}`)
+	// ИСПРАВЛЕНИЕ: Функция для перехода к заявке по клику на строку
+	const handleOrderRowClick = (id: number, event: React.MouseEvent) => {
+		// Проверяем, что клик не был по кнопке "Подробнее" или другому интерактивному элементу
+		const target = event.target as HTMLElement
+		const isInteractiveElement =
+			target.tagName === 'BUTTON' ||
+			target.tagName === 'A' ||
+			target.closest('button') !== null ||
+			target.closest('a') !== null
+
+		if (!isInteractiveElement) {
+			navigate(`/pvlc_med_card/${id}`)
+		}
 	}
 
-	// Список доступных статусов (исключаем черновик из выпадающего списка)
+	// // ИСПРАВЛЕНИЕ: Функция для перехода по кнопке "Подробнее"
+	// const handleOrderButtonClick = (id: number) => {
+	// 	navigate(`/pvlc_med_card/${id}`)
+	// }
+
+	// ИСПРАВЛЕНИЕ: список доступных статусов (исключаем черновик из выпадающего списка)
 	const statusOptions = [
 		{ value: '', label: 'Все статусы' },
 		{ value: 'сформирован', label: 'Сформирован' },
@@ -245,13 +276,13 @@ const PvlcMedCardsPage: React.FC = () => {
 
 						<Row className='mt-3'>
 							<Col className='d-flex gap-2'>
-								<Button
+								{/* <Button
 									variant='outline-secondary'
 									onClick={handleResetFilter}
 									disabled={loading}
 								>
 									Сбросить фильтры
-								</Button>
+								</Button> */}
 							</Col>
 						</Row>
 					</Form>
@@ -274,8 +305,7 @@ const PvlcMedCardsPage: React.FC = () => {
 					<Alert variant='info'>
 						{filter.date_from || filter.updated_date_from || filter.status
 							? 'По выбранным фильтрам заявки не найдены. Попробуйте изменить параметры поиска.'
-							: // ИЗМЕНЕНИЕ: уточняем сообщение, что черновики не отображаются
-							  'Заявок нет. Черновики не отображаются в этом списке. Для просмотра черновиков перейдите на страницу деталей заявки.'}
+							: 'Заявок нет. Черновики не отображаются в этом списке. Для просмотра черновиков перейдите на страницу деталей заявки.'}
 					</Alert>
 				) : (
 					<>
@@ -311,7 +341,14 @@ const PvlcMedCardsPage: React.FC = () => {
 							</Alert>
 						)}
 
-						<Table striped bordered hover responsive className='mt-4'>
+						{/* ИСПРАВЛЕНИЕ: Добавлен класс для кликабельных строк */}
+						<Table
+							striped
+							bordered
+							hover
+							responsive
+							className='mt-4 clickable-rows'
+						>
 							<thead>
 								<tr>
 									<th>ID</th>
@@ -321,12 +358,18 @@ const PvlcMedCardsPage: React.FC = () => {
 									<th>Результат ДЖЕЛ</th>
 									<th>Дата создания</th>
 									<th>Дата обновления</th>
-									<th>Действия</th>
+									{/* <th>Действия</th> */}
 								</tr>
 							</thead>
 							<tbody>
 								{filteredOrders.map(order => (
-									<tr key={order.id}>
+									<tr
+										key={order.id}
+										// ИСПРАВЛЕНИЕ: Добавляем обработчик клика на строку
+										onClick={event => handleOrderRowClick(order.id!, event)}
+										className='clickable-row'
+										style={{ cursor: 'pointer' }}
+									>
 										<td>{order.id}</td>
 										<td>{order.patient_name || '—'}</td>
 										<td>{order.doctor_name || '—'}</td>
@@ -341,13 +384,17 @@ const PvlcMedCardsPage: React.FC = () => {
 										<td>{formatDate(getCreatedDate(order))}</td>
 										<td>{formatDate(getUpdatedDate(order))}</td>
 										<td>
+											{/* ИСПРАВЛЕНИЕ: Обновленный обработчик для кнопки
 											<Button
 												variant='outline-primary'
 												size='sm'
-												onClick={() => handleOrderClick(order.id!)}
+												onClick={event => {
+													event.stopPropagation() // Предотвращаем всплытие клика на строку
+													handleOrderButtonClick(order.id!)
+												}}
 											>
 												Подробнее
-											</Button>
+											</Button> */}
 										</td>
 									</tr>
 								))}
