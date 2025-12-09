@@ -1111,3 +1111,64 @@ body {
 	transform: none;
 	box-shadow: none;
 }
+/* ============ КНОПКИ ФИЛЬТРОВ ЗАЯВОК ============ */
+
+/* Кнопка "Применить фильтры" */
+.btn-primary {
+	/* Голубая кнопка (Применить фильтры) */
+	background: #00a6ca;
+	color: #fff;
+	padding: 0.75rem 1.5rem;
+	font-size: 1rem;
+	font-weight: 600;
+	border: none;
+	border-radius: 8px;
+	transition: all 0.3s ease;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+	min-width: 160px;
+}
+
+.btn-primary:hover:not(:disabled) {
+	background: #008fb3;
+	box-shadow: 0 6px 12px rgba(0, 166, 202, 0.4);
+	transform: translateY(-2px);
+}
+
+.btn-primary:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+	transform: none;
+	box-shadow: none;
+}
+
+/* Кнопка "Сбросить фильтры" */
+.btn-outline-secondary {
+	/* Контурная серая кнопка (Сбросить фильтры) */
+	border: 2px solid #6c757d;
+	color: #6c757d;
+	background: transparent;
+	padding: 0.75rem 1.5rem;
+	font-size: 1rem;
+	font-weight: 600;
+	border-radius: 8px;
+	transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover:not(:disabled) {
+	background: #6c757d;
+	color: white;
+	box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+	transform: translateY(-1px);
+}
+
+.btn-outline-secondary:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+	transform: none;
+	box-shadow: none;
+}
+
+/* Контейнер кнопок фильтров */
+.bg-light .d-flex.gap-2 {
+	justify-content: flex-start;
+}

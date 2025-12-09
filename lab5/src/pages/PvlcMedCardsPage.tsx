@@ -1,9 +1,8 @@
-// src/pages/PvlcMedCardsPage.tsx
 import React, { useEffect, useState } from 'react'
 import {
 	Container,
 	Table,
-	// Button,
+	Button,
 	Alert,
 	Spinner,
 	Badge,
@@ -32,8 +31,8 @@ const PvlcMedCardsPage: React.FC = () => {
 	)
 	const { isAuthenticated } = useAppSelector(state => state.auth)
 
-	// Таймер для debounce фильтрации
-	const [filterTimer, setFilterTimer] = useState<number | null>(null)
+	// ИСПРАВЛЕНИЕ: Убираем таймер для debounce (теперь фильтры по кнопке)
+	// const [filterTimer, setFilterTimer] = useState<number | null>(null)
 
 	// Локальное состояние для формы фильтрации
 	const [localFilter, setLocalFilter] = useState<PvlcMedCardFilter>({
@@ -42,9 +41,13 @@ const PvlcMedCardsPage: React.FC = () => {
 		status: '',
 	})
 
+	// ИСПРАВЛЕНИЕ: Состояние для отслеживания изменений фильтров
+	const [filtersChanged, setFiltersChanged] = useState<boolean>(false)
+
 	// Инициализируем локальное состояние при загрузке
 	useEffect(() => {
 		setLocalFilter(filter)
+		setFiltersChanged(false) // Сбрасываем флаг изменений при загрузке
 	}, [filter])
 
 	// Фильтруем заявки: исключаем черновики из отображения
@@ -71,12 +74,12 @@ const PvlcMedCardsPage: React.FC = () => {
 			console.log('PvlcMedCardsPage unmounting, resetting filters...')
 			dispatch(resetOrdersFilter())
 
-			// Очищаем таймер если он есть
-			if (filterTimer !== null) {
-				clearTimeout(filterTimer)
-			}
+			// ИСПРАВЛЕНИЕ: Убрали очистку таймера
+			// if (filterTimer !== null) {
+			// 	clearTimeout(filterTimer)
+			// }
 		}
-	}, [dispatch, filterTimer])
+	}, [dispatch]) // ИСПРАВЛЕНИЕ: Убрали filterTimer из зависимостей
 
 	useEffect(() => {
 		if (!isAuthenticated) {
@@ -84,7 +87,7 @@ const PvlcMedCardsPage: React.FC = () => {
 		}
 	}, [isAuthenticated, navigate])
 
-	// Обработчик изменения фильтра с debounce
+	// ИСПРАВЛЕНИЕ: Обработчик изменения фильтра (без debounce)
 	const handleFilterChange = (
 		field: keyof PvlcMedCardFilter,
 		value: string
@@ -94,21 +97,10 @@ const PvlcMedCardsPage: React.FC = () => {
 			[field]: value,
 		}
 		setLocalFilter(newFilter)
-
-		// Очищаем предыдущий таймер
-		if (filterTimer !== null) {
-			clearTimeout(filterTimer)
-		}
-
-		// Устанавливаем новый таймер для debounce (500ms)
-		const timer = window.setTimeout(() => {
-			dispatch(setOrdersFilter(newFilter))
-		}, 500)
-
-		setFilterTimer(timer)
+		setFiltersChanged(true) // Отмечаем, что фильтры изменились
 	}
 
-	// // Обработчик сброса фильтра
+	// // ИСПРАВЛЕНИЕ: Обработчик сброса фильтра
 	// const handleResetFilter = () => {
 	// 	dispatch(resetOrdersFilter())
 	// 	setLocalFilter({
@@ -116,16 +108,23 @@ const PvlcMedCardsPage: React.FC = () => {
 	// 		updated_date_from: '',
 	// 		status: '',
 	// 	})
+	// 	setFiltersChanged(false)
 	// }
 
-	// Очищаем таймер при размонтировании
-	useEffect(() => {
-		return () => {
-			if (filterTimer !== null) {
-				clearTimeout(filterTimer)
-			}
-		}
-	}, [filterTimer])
+	// ИСПРАВЛЕНИЕ: Обработчик применения фильтров
+	const handleApplyFilters = () => {
+		dispatch(setOrdersFilter(localFilter))
+		setFiltersChanged(false) // Сбрасываем флаг после применения
+	}
+
+	// ИСПРАВЛЕНИЕ: Убрали useEffect для очистки таймера
+	// useEffect(() => {
+	// 	return () => {
+	// 		if (filterTimer !== null) {
+	// 			clearTimeout(filterTimer)
+	// 		}
+	// 	}
+	// }, [filterTimer])
 
 	const getStatusColor = (status: string) => {
 		switch (status) {
@@ -190,11 +189,6 @@ const PvlcMedCardsPage: React.FC = () => {
 			navigate(`/pvlc_med_card/${id}`)
 		}
 	}
-
-	// // ИСПРАВЛЕНИЕ: Функция для перехода по кнопке "Подробнее"
-	// const handleOrderButtonClick = (id: number) => {
-	// 	navigate(`/pvlc_med_card/${id}`)
-	// }
 
 	// ИСПРАВЛЕНИЕ: список доступных статусов (исключаем черновик из выпадающего списка)
 	const statusOptions = [
@@ -274,8 +268,16 @@ const PvlcMedCardsPage: React.FC = () => {
 							</Col>
 						</Row>
 
+						{/* ИСПРАВЛЕНИЕ: Добавлены кнопки применения и сброса фильтров */}
 						<Row className='mt-3'>
 							<Col className='d-flex gap-2'>
+								<Button
+									variant='primary'
+									onClick={handleApplyFilters}
+									disabled={!filtersChanged || loading}
+								>
+									Применить фильтры
+								</Button>
 								{/* <Button
 									variant='outline-secondary'
 									onClick={handleResetFilter}
