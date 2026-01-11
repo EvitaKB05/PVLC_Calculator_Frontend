@@ -1,4 +1,4 @@
-# Internet-Apps-Development (FRONTEND)
+# PVLC_Calculator_Frontend
 
 Репозиторий по курсу "Разработка Интернет Приложений" (FRONTEND)
 
